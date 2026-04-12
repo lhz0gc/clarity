@@ -930,6 +930,31 @@ const boardCtx = boardCanvas.getContext('2d');
 let undoStack = []; // array of board canvas data URLs
 let redoStack = [];
 
+// Device detection
+const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+const isMobileUA = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+const isDesktop = !isMobileUA;
+let cameraCount = 0; // detected after media setup
+let hasMultipleCameras = false;
+
+async function detectCameras() {
+  try {
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const videoCams = devices.filter(d => d.kind === 'videoinput');
+    cameraCount = videoCams.length;
+    hasMultipleCameras = cameraCount > 1;
+  } catch(e) {
+    cameraCount = 1;
+    hasMultipleCameras = false;
+  }
+  // Hide flip button if only one camera
+  if (!hasMultipleCameras && flipBtn) {
+    flipBtn.style.display = 'none';
+  } else if (flipBtn) {
+    flipBtn.style.display = '';
+  }
+}
+
 // ═════════════════════════════════
 // HELPERS
 // ═════════════════════════════════
@@ -2049,6 +2074,7 @@ async function startRoom(roomCode) {
   showCallScreen();
   await requestWakeLock();
   await setupMedia();
+  await detectCameras();
 
   currentRoom = room;
   roomBadge.textContent = room;
