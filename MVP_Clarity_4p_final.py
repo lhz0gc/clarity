@@ -83,7 +83,7 @@ MANIFEST_JSON = json.dumps(
 )
 
 SERVICE_WORKER_JS = r'''
-const CACHE_NAME = 'clarity-shell-v15';
+const CACHE_NAME = 'clarity-shell-v16';
 const APP_SHELL = ['/manifest.json', '/icon.svg'];
 
 self.addEventListener('install', (event) => {
@@ -198,7 +198,7 @@ INDEX_HTML = r'''
     .logo-text { font-size: 42px; font-weight: 700; color: #075E54; letter-spacing: -0.5px; }
     .logo-cursor { width: 18px; height: 18px; margin-top: 10px; }
     .logo-cursor svg { fill: #25D366; }
-    .tagline { font-size: 16px; color: #667781; font-weight: 400; margin-bottom: 48px; text-align: center; }
+    .tagline { font-size: 17px; color: #54656F; font-weight: 500; margin-bottom: 48px; text-align: center; }
 
     .quick-call-btn {
       width: 88%; max-width: 380px; height: 64px; border-radius: 32px;
@@ -284,18 +284,18 @@ INDEX_HTML = r'''
     }
     #callScreen.active { display: flex; }
 
-    /* Status bar — WhatsApp style: minimal top overlay */
+    /* Status bar — WhatsApp style top overlay */
     .call-status-bar {
       position: absolute; top: 0; left: 0; right: 0; z-index: 20;
-      padding: calc(8px + var(--safe-top)) 16px 12px;
-      background: linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.3) 60%, transparent 100%);
+      padding: calc(8px + var(--safe-top)) 14px 14px;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.35) 70%, transparent 100%);
       display: flex; align-items: center; gap: 8px;
     }
     .status-dot { width: 10px; height: 10px; border-radius: 50%; background: #FF9500; flex-shrink: 0; }
     .status-dot.connected { background: #25D366; }
-    .call-status-text { flex: 1; font-size: 16px; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500; }
-    .room-badge { background: rgba(255,255,255,0.15); padding: 5px 12px; border-radius: 10px; font-size: 14px; font-weight: 700; color: white; letter-spacing: 2px; min-width: 60px; text-align: center; }
-    .peer-count { background: rgba(37,211,102,0.3); padding: 5px 10px; border-radius: 10px; font-size: 14px; font-weight: 700; color: #25D366; }
+    .call-status-text { flex: 1; font-size: 15px; color: rgba(255,255,255,0.95); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500; }
+    .room-badge { background: rgba(255,255,255,0.18); padding: 5px 10px; border-radius: 10px; font-size: 13px; font-weight: 700; color: white; letter-spacing: 2px; min-width: 56px; text-align: center; }
+    .peer-count { background: rgba(37,211,102,0.3); padding: 5px 10px; border-radius: 10px; font-size: 13px; font-weight: 700; color: #25D366; }
 
     /* Video grid */
     .video-area { flex: 1; position: relative; overflow: hidden; }
@@ -423,62 +423,58 @@ INDEX_HTML = r'''
     .ann-action.zoom-btn { padding: 8px 14px; font-size: 24px; font-weight: 900; min-width: 44px; text-align: center; }
     .zoom-label { color: rgba(255,255,255,0.7); font-size: 14px; font-weight: 600; min-width: 28px; text-align: center; }
 
-    /* Main toolbar — WhatsApp pill bar */
+    /* Main toolbar — WhatsApp pill bar + elderly-friendly labels */
     .call-toolbar {
       position: absolute; bottom: 0; left: 0; right: 0;
       display: flex; align-items: center; justify-content: center;
-      padding: 12px 0 calc(12px + var(--safe-bottom));
+      padding: 10px 8px calc(10px + var(--safe-bottom));
       z-index: 15;
     }
     .toolbar-pill {
       position: relative;
       display: flex; align-items: center; justify-content: center;
-      gap: 12px; padding: 10px 16px;
-      background: rgba(30,36,40,0.92);
-      border-radius: 40px;
-      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-    }
-    /* Small handle indicator above the pill (like WhatsApp) */
-    .toolbar-pill::before {
-      content: ''; position: absolute; top: -10px; left: 50%; transform: translateX(-50%);
-      width: 36px; height: 4px; border-radius: 2px; background: rgba(255,255,255,0.25);
+      gap: 6px; padding: 8px 10px;
+      background: rgba(22,30,34,0.94);
+      border-radius: 28px;
+      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      box-shadow: 0 4px 24px rgba(0,0,0,0.5);
     }
     .tool-btn {
-      display: flex; align-items: center; justify-content: center;
-      width: 52px; height: 52px; border-radius: 50%;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      width: 56px; height: 56px; border-radius: 50%;
       background: rgba(255,255,255,0.12); border: none;
       cursor: pointer; -webkit-tap-highlight-color: transparent; color: white;
-      padding: 0; flex-shrink: 0;
+      padding: 0; flex-shrink: 0; gap: 2px;
     }
     .tool-btn:active { background: rgba(255,255,255,0.3); }
     .tool-btn.active-state { background: white; color: #111B21; }
-    .tool-btn svg { width: 24px; height: 24px; fill: currentColor; }
-    .tool-btn .tl { display: none; }
+    .tool-btn svg { width: 22px; height: 22px; fill: currentColor; flex-shrink: 0; }
+    .tool-btn .tl { font-size: 9px; font-weight: 600; color: rgba(255,255,255,0.9); line-height: 1; }
+    .tool-btn.active-state .tl { color: #111B21; }
 
     .freeze-btn {
-      width: 52px; height: 52px; border-radius: 50%;
+      width: 62px; height: 62px; border-radius: 50%;
       background: #25D366; border: none;
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      cursor: pointer; box-shadow: 0 2px 12px rgba(37,211,102,0.4);
       -webkit-tap-highlight-color: transparent; color: white;
-      padding: 0; flex-shrink: 0;
+      padding: 0; flex-shrink: 0; gap: 2px;
     }
     .freeze-btn:active { transform: scale(0.93); }
     .freeze-btn.frozen { background: #075E54; }
-    .freeze-btn svg { width: 24px; height: 24px; fill: currentColor; }
-    .freeze-btn .tl { display: none; }
+    .freeze-btn svg { width: 24px; height: 24px; fill: currentColor; flex-shrink: 0; }
+    .freeze-btn .tl { font-size: 9px; font-weight: 700; color: white; line-height: 1; }
 
     .end-btn {
-      width: 52px; height: 52px; border-radius: 50%;
+      width: 56px; height: 56px; border-radius: 50%;
       background: #EA0038; border: none;
-      display: flex; align-items: center; justify-content: center;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
       cursor: pointer; -webkit-tap-highlight-color: transparent; color: white;
-      padding: 0; flex-shrink: 0;
+      padding: 0; flex-shrink: 0; gap: 2px;
     }
     .end-btn:active { opacity: 0.8; }
-    .end-btn svg { width: 24px; height: 24px; fill: currentColor; }
-    .end-btn .tl { display: none; }
+    .end-btn svg { width: 22px; height: 22px; fill: currentColor; flex-shrink: 0; }
+    .end-btn .tl { font-size: 9px; font-weight: 600; color: white; line-height: 1; }
 
     .source-video { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
 
@@ -585,19 +581,24 @@ INDEX_HTML = r'''
   <div class="call-toolbar" id="callToolbar">
     <div class="toolbar-pill">
       <button class="tool-btn" id="muteBtn" aria-label="Mic">
-        <svg id="micIcon" viewBox="0 0 24 24"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.93V21h2v-3.07A7 7 0 0 0 19 11h-2z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.93V21h2v-3.07A7 7 0 0 0 19 11h-2z"/></svg>
+        <span class="tl" data-i18n="mic">Mic</span>
       </button>
-      <button class="tool-btn" id="flipBtn" aria-label="Flip Camera">
+      <button class="tool-btn" id="flipBtn" aria-label="Flip">
         <svg viewBox="0 0 24 24"><path d="M20 5h-3.17L15 3H9L7.17 5H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm-8 13a5.5 5.5 0 0 1 0-11 5.5 5.5 0 0 1 5.21 3.73h-1.71A3.99 3.99 0 0 0 12 8.5a4 4 0 1 0 3.73 5.46h1.71A5.5 5.5 0 0 1 12 18z"/></svg>
+        <span class="tl" data-i18n="flip">Flip</span>
       </button>
       <button class="freeze-btn" id="freezeBtn" aria-label="Freeze">
-        <svg id="freezeIcon" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+        <span class="tl" data-i18n="freeze">Freeze</span>
       </button>
       <button class="tool-btn" id="shareBtn2" aria-label="Share">
         <svg viewBox="0 0 24 24"><path d="M18 16.08a2.99 2.99 0 0 0-1.98.75L8.91 12.7A3.02 3.02 0 0 0 9 12a3.02 3.02 0 0 0-.09-.7l7.05-4.11A2.99 2.99 0 1 0 15 5a3.02 3.02 0 0 0 .09.7L8.04 9.81A3 3 0 1 0 6 15a2.99 2.99 0 0 0 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66a2.92 2.92 0 1 0 2.92-2.92z"/></svg>
+        <span class="tl" data-i18n="share">Share</span>
       </button>
-      <button class="end-btn" id="endBtn" aria-label="End Call">
+      <button class="end-btn" id="endBtn" aria-label="End">
         <svg viewBox="0 0 24 24"><path d="M12 9c-1.6 0-3.15.25-4.6.72v3.1c0 .39-.23.74-.56.9-.98.49-1.87 1.12-2.66 1.85-.18.18-.43.28-.7.28a.99.99 0 0 1-.71-.3L.29 13.08a.99.99 0 0 1 0-1.42C3.55 8.5 7.56 7 12 7s8.45 1.5 11.71 4.66a.99.99 0 0 1 0 1.42l-2.48 2.48a.99.99 0 0 1-.7.29c-.27 0-.52-.1-.71-.29a11.27 11.27 0 0 0-2.66-1.85c-.33-.16-.56-.5-.56-.9v-3.1C15.15 9.25 13.6 9 12 9z"/></svg>
+        <span class="tl" data-i18n="end">End</span>
       </button>
     </div>
   </div>
@@ -758,8 +759,19 @@ function toggleLang() {
 }
 
 function syncToolbarLabels() {
-  // No text labels on toolbar buttons (WhatsApp style — icon only)
-  // Just sync annotation bar and PIP label
+  // Freeze/resume label
+  const ftl = freezeBtn?.querySelector('.tl');
+  if (ftl) ftl.textContent = isFrozen ? t('resumeBtn') : t('freeze');
+  // Mic label
+  syncLocalButtonStates();
+  // Other toolbar labels
+  const flipLabel = flipBtn?.querySelector('.tl');
+  if (flipLabel) flipLabel.textContent = t('flip');
+  const shareLabel = shareBtn2?.querySelector('.tl');
+  if (shareLabel) shareLabel.textContent = t('share');
+  const endLabel = endBtn?.querySelector('.tl');
+  if (endLabel) endLabel.textContent = t('end');
+  // Annotation
   clearAnnBtn && (clearAnnBtn.textContent = t('clearAll'));
   unfreezeBtn && (unfreezeBtn.innerHTML = t('resume'));
   const pipLabel = document.querySelector('.pip-label');
@@ -1075,7 +1087,8 @@ function syncLocalButtonStates() {
   isVideoOff = videoTrack ? !videoTrack.enabled : true;
 
   muteBtn.classList.toggle('active-state', !!audioTrack && isMuted);
-  muteBtn.innerHTML = audioTrack ? (isMuted ? ICONS.micOff : ICONS.micOn) : ICONS.micNone;
+  const micLabel = audioTrack ? (isMuted ? t('unmute') : t('mic')) : t('noMic');
+  muteBtn.innerHTML = (audioTrack ? (isMuted ? ICONS.micOff : ICONS.micOn) : ICONS.micNone) + `<span class="tl">${micLabel}</span>`;
 
   const showPip = !!videoTrack && !isFrozen;
   pipContainer.classList.toggle('hidden', !showPip);
@@ -1586,7 +1599,7 @@ function enterFreezeMode({ remote = false } = {}) {
   document.getElementById('callToolbar').classList.add('hidden');
   pipContainer.classList.add('hidden');
   freezeBtn.classList.add('frozen');
-  freezeBtn.innerHTML = ICONS.play;
+  freezeBtn.innerHTML = ICONS.play + `<span class="tl">${t('resumeBtn')}</span>`;
   setStatus(remote ? t('frozenShared') : t('frozenDraw'));
   showToast(t('screenshotHint'), 5000);
 }
@@ -1604,7 +1617,7 @@ function exitFreezeMode({ notify = true, silent = false } = {}) {
     pipContainer.classList.remove('hidden');
   }
   freezeBtn.classList.remove('frozen');
-  freezeBtn.innerHTML = ICONS.pause;
+  freezeBtn.innerHTML = ICONS.pause + `<span class="tl">${t('freeze')}</span>`;
   if (!silent) {
     const connected = Object.keys(peers).length > 0;
     setStatus(connected ? t('live') : t('waitingPeers', currentRoom || ''), connected);
