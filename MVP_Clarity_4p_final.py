@@ -83,7 +83,7 @@ MANIFEST_JSON = json.dumps(
 )
 
 SERVICE_WORKER_JS = r'''
-const CACHE_NAME = 'clarity-shell-v7';
+const CACHE_NAME = 'clarity-shell-v8';
 const APP_SHELL = ['/manifest.json', '/icon.svg'];
 
 self.addEventListener('install', (event) => {
@@ -416,6 +416,8 @@ INDEX_HTML = r'''
     }
     .ann-action:active { opacity: 0.7; }
     .ann-action.done { background: var(--green); }
+    .ann-action.zoom-btn { padding: 10px 18px; font-size: 28px; font-weight: 900; min-width: 52px; text-align: center; }
+    .zoom-label { color: rgba(255,255,255,0.7); font-size: 16px; font-weight: 700; min-width: 32px; text-align: center; }
 
     /* Main toolbar — BIG for elderly */
     .call-toolbar {
@@ -461,6 +463,16 @@ INDEX_HTML = r'''
     .end-btn .tl { font-size: 13px; color: white; margin-top: 2px; font-weight: 700; }
 
     .source-video { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+
+    /* Toast notification */
+    .toast {
+      position: fixed; top: 60px; left: 50%; transform: translateX(-50%);
+      background: rgba(0,0,0,0.85); color: white; padding: 14px 24px;
+      border-radius: 16px; font-size: 16px; font-weight: 600; z-index: 100;
+      opacity: 0; transition: opacity 0.4s; pointer-events: none;
+      max-width: 90%; text-align: center;
+    }
+    .toast.show { opacity: 1; }
 
     @media (max-height: 700px) {
       .quick-call-btn { height: 80px; }
@@ -540,6 +552,10 @@ INDEX_HTML = r'''
     <div class="color-dot" style="background:#FFCC00" data-color="#FFCC00"></div>
     <div class="color-dot" style="background:#007AFF" data-color="#007AFF"></div>
     <div class="ann-divider"></div>
+    <button class="ann-action zoom-btn" id="zoomOutBtn">−</button>
+    <span class="zoom-label" id="zoomLabel"></span>
+    <button class="ann-action zoom-btn" id="zoomInBtn">+</button>
+    <div class="ann-divider"></div>
     <button class="ann-action" id="clearAnnBtn" data-i18n="clearAll">Clear All</button>
     <button class="ann-action done" id="unfreezeBtn" data-i18n="resume">▶ Resume</button>
   </div>
@@ -564,6 +580,7 @@ INDEX_HTML = r'''
 </div>
 
 <video id="localVideoSrc" class="source-video" autoplay playsinline muted></video>
+<div class="toast" id="toast"></div>
 
 <script>
 // ═════════════════════════════════
@@ -618,6 +635,7 @@ const I18N = {
     noVideoFreeze: 'No video to freeze yet',
     frozenShared: 'Frozen — shared board',
     frozenDraw: 'Frozen — draw to annotate',
+    screenshotHint: '📸 Tip: Use your phone\'s screenshot to save this frame',
     live: 'Live',
     allLeft: 'All peers left',
     networkIssue: 'Network issue. Retrying...',
@@ -665,6 +683,7 @@ const I18N = {
     noVideoFreeze: '还没有视频可冻结',
     frozenShared: '已冻结 — 共享画板',
     frozenDraw: '已冻结 — 在画面上标注',
+    screenshotHint: '📸 提示：可以用手机截图功能保存当前画面',
     live: '通话中',
     allLeft: '所有人已离开',
     networkIssue: '网络问题，重试中...',
@@ -786,6 +805,12 @@ let penColor = '#FF3B30';
 let penWidth = 4;
 let isDrawing = false;
 let lastX = null, lastY = null;
+// Zoom & pan state for frozen canvas
+let zoomLevel = 1;
+let panX = 0, panY = 0;
+let isPinching = false;
+let lastPinchDist = 0;
+let lastPinchMidX = 0, lastPinchMidY = 0;
 
 // Offscreen board canvas (GPT refinement — no more Image re-encoding)
 const boardCanvas = document.createElement('canvas');
@@ -842,6 +867,16 @@ function getJoinLink() {
   const url = new URL(getShareBase());
   url.searchParams.set('room', currentRoom);
   return url.toString();
+}
+
+let toastTimer = null;
+function showToast(msg, duration = 4000) {
+  const el = document.getElementById('toast');
+  if (!el) return;
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), duration);
 }
 
 function setStatus(text, connected) {
@@ -1289,14 +1324,61 @@ async function flipCamera() {
 // ═════════════════════════════════
 function getBoardRect() {
   if (!hasBoard()) return null;
-  const scale = Math.min(frozenCanvas.width / boardCanvas.width, frozenCanvas.height / boardCanvas.height);
+  const baseScale = Math.min(frozenCanvas.width / boardCanvas.width, frozenCanvas.height / boardCanvas.height);
+  const scale = baseScale * zoomLevel;
   const width = boardCanvas.width * scale;
   const height = boardCanvas.height * scale;
   return {
-    x: (frozenCanvas.width - width) / 2,
-    y: (frozenCanvas.height - height) / 2,
+    x: (frozenCanvas.width - width) / 2 + panX,
+    y: (frozenCanvas.height - height) / 2 + panY,
     width, height,
   };
+}
+
+function resetZoom() {
+  zoomLevel = 1;
+  panX = 0;
+  panY = 0;
+  redrawFrozen();
+  updateZoomLabel();
+}
+
+function adjustZoom(delta, centerX, centerY) {
+  const oldZoom = zoomLevel;
+  zoomLevel = Math.min(Math.max(zoomLevel + delta, 1), 6);
+  if (zoomLevel === 1) { panX = 0; panY = 0; }
+  else if (centerX !== undefined) {
+    // Zoom toward the pinch/click center
+    const ratio = zoomLevel / oldZoom;
+    panX = centerX - ratio * (centerX - panX);
+    panY = centerY - ratio * (centerY - panY);
+  }
+  clampPan();
+  redrawFrozen();
+  updateZoomLabel();
+}
+
+function clampPan() {
+  if (zoomLevel <= 1) { panX = 0; panY = 0; return; }
+  const r = getBoardRectUnpanned();
+  if (!r) return;
+  const maxPanX = Math.max(0, (r.width * zoomLevel - frozenCanvas.width) / 2);
+  const maxPanY = Math.max(0, (r.height * zoomLevel - frozenCanvas.height) / 2);
+  panX = Math.min(maxPanX, Math.max(-maxPanX, panX));
+  panY = Math.min(maxPanY, Math.max(-maxPanY, panY));
+}
+
+function getBoardRectUnpanned() {
+  if (!hasBoard()) return null;
+  const baseScale = Math.min(frozenCanvas.width / boardCanvas.width, frozenCanvas.height / boardCanvas.height);
+  const w = boardCanvas.width * baseScale;
+  const h = boardCanvas.height * baseScale;
+  return { x: (frozenCanvas.width - w) / 2, y: (frozenCanvas.height - h) / 2, width: w, height: h };
+}
+
+function updateZoomLabel() {
+  const el = document.getElementById('zoomLabel');
+  if (el) el.textContent = zoomLevel > 1 ? `${zoomLevel.toFixed(1)}x` : '';
 }
 
 function resizeCanvas() {
@@ -1319,7 +1401,7 @@ function redrawFrozen() {
 function canvasToBoard(cx, cy) {
   const rect = getBoardRect();
   if (!rect) return null;
-  if (cx < rect.x || cy < rect.y || cx > rect.x + rect.width || cy > rect.y + rect.height) return null;
+  // Allow drawing even slightly outside visible board when zoomed
   return {
     x: ((cx - rect.x) / rect.width) * boardCanvas.width,
     y: ((cy - rect.y) / rect.height) * boardCanvas.height,
@@ -1399,6 +1481,7 @@ function enterFreezeMode({ remote = false } = {}) {
   freezeBtn.querySelector('.ti').textContent = '▶️';
   freezeBtn.querySelector('.tl').textContent = t('resumeBtn');
   setStatus(remote ? t('frozenShared') : t('frozenDraw'));
+  showToast(t('screenshotHint'), 5000);
 }
 
 function exitFreezeMode({ notify = true, silent = false } = {}) {
@@ -1406,6 +1489,7 @@ function exitFreezeMode({ notify = true, silent = false } = {}) {
   isDrawing = false;
   lastX = null;
   lastY = null;
+  zoomLevel = 1; panX = 0; panY = 0;
   frozenCanvas.classList.add('hidden');
   annotationBar.classList.remove('active');
   if (localStream?.getVideoTracks?.().length) {
@@ -1437,36 +1521,89 @@ function sendBoardSnapshot() {
   });
 }
 
-// Pointer events (unified touch/mouse)
+// Pointer events — single finger draws, two fingers zoom/pan
+const activePointers = new Map(); // pointerId → {x, y}
+
 function handlePointerStart(event) {
   if (!isFrozen || !hasBoard()) return;
   event.preventDefault();
   frozenCanvas.setPointerCapture?.(event.pointerId);
-  const rect = frozenCanvas.getBoundingClientRect();
-  const point = canvasToBoard(event.clientX - rect.left, event.clientY - rect.top);
-  if (!point) return;
-  isDrawing = true;
-  lastX = point.x;
-  lastY = point.y;
+  activePointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+
+  if (activePointers.size === 2) {
+    // Start pinch — cancel any drawing
+    isDrawing = false;
+    lastX = null; lastY = null;
+    isPinching = true;
+    const pts = [...activePointers.values()];
+    lastPinchDist = Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y);
+    lastPinchMidX = (pts[0].x + pts[1].x) / 2;
+    lastPinchMidY = (pts[0].y + pts[1].y) / 2;
+    return;
+  }
+
+  if (activePointers.size === 1 && !isPinching) {
+    // Single finger — start drawing
+    const rect = frozenCanvas.getBoundingClientRect();
+    const point = canvasToBoard(event.clientX - rect.left, event.clientY - rect.top);
+    if (!point) return;
+    isDrawing = true;
+    lastX = point.x;
+    lastY = point.y;
+  }
 }
 
 function handlePointerMove(event) {
-  if (!isDrawing || !hasBoard()) return;
+  if (!isFrozen || !hasBoard()) return;
   event.preventDefault();
-  const rect = frozenCanvas.getBoundingClientRect();
-  const point = canvasToBoard(event.clientX - rect.left, event.clientY - rect.top);
-  if (!point) return;
-  drawLineOnBoard(lastX, lastY, point.x, point.y, penColor, penWidth);
-  sendWs({ type: 'draw_line', x1: lastX, y1: lastY, x2: point.x, y2: point.y, color: penColor, width: penWidth });
-  lastX = point.x;
-  lastY = point.y;
+  if (!activePointers.has(event.pointerId)) return;
+  activePointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+
+  if (isPinching && activePointers.size === 2) {
+    const pts = [...activePointers.values()];
+    const dist = Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y);
+    const midX = (pts[0].x + pts[1].x) / 2;
+    const midY = (pts[0].y + pts[1].y) / 2;
+    const rect = frozenCanvas.getBoundingClientRect();
+
+    // Zoom
+    const pinchDelta = (dist - lastPinchDist) * 0.01;
+    if (Math.abs(pinchDelta) > 0.001) {
+      adjustZoom(pinchDelta, midX - rect.left - frozenCanvas.width / 2, midY - rect.top - frozenCanvas.height / 2);
+    }
+
+    // Pan
+    panX += midX - lastPinchMidX;
+    panY += midY - lastPinchMidY;
+    clampPan();
+    redrawFrozen();
+
+    lastPinchDist = dist;
+    lastPinchMidX = midX;
+    lastPinchMidY = midY;
+    return;
+  }
+
+  if (isDrawing && activePointers.size === 1) {
+    const rect = frozenCanvas.getBoundingClientRect();
+    const point = canvasToBoard(event.clientX - rect.left, event.clientY - rect.top);
+    if (!point) return;
+    drawLineOnBoard(lastX, lastY, point.x, point.y, penColor, penWidth);
+    sendWs({ type: 'draw_line', x1: lastX, y1: lastY, x2: point.x, y2: point.y, color: penColor, width: penWidth });
+    lastX = point.x;
+    lastY = point.y;
+  }
 }
 
-function handlePointerEnd() {
-  if (isDrawing && hasBoard()) sendBoardSnapshot();
-  isDrawing = false;
-  lastX = null;
-  lastY = null;
+function handlePointerEnd(event) {
+  activePointers.delete(event.pointerId);
+  if (activePointers.size < 2) isPinching = false;
+  if (activePointers.size === 0) {
+    if (isDrawing && hasBoard()) sendBoardSnapshot();
+    isDrawing = false;
+    lastX = null;
+    lastY = null;
+  }
 }
 
 frozenCanvas.addEventListener('pointerdown', handlePointerStart, { passive: false });
@@ -1744,6 +1881,11 @@ flipBtn.addEventListener('click', async () => {
 
 endBtn.addEventListener('click', showHomeScreen);
 clearAnnBtn.addEventListener('click', clearAnnotations);
+document.getElementById('zoomInBtn').addEventListener('click', () => adjustZoom(0.5));
+document.getElementById('zoomOutBtn').addEventListener('click', () => {
+  if (zoomLevel <= 1) return;
+  adjustZoom(-0.5);
+});
 unfreezeBtn.addEventListener('click', () => {
   clearBoard();
   exitFreezeMode({ notify: true });
