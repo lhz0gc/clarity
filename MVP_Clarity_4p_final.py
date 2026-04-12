@@ -83,7 +83,7 @@ MANIFEST_JSON = json.dumps(
 )
 
 SERVICE_WORKER_JS = r'''
-const CACHE_NAME = 'clarity-shell-v9';
+const CACHE_NAME = 'clarity-shell-v10';
 const APP_SHELL = ['/manifest.json', '/icon.svg'];
 
 self.addEventListener('install', (event) => {
@@ -1906,7 +1906,7 @@ async function autoShare() {
   if (!link) return;
   try {
     if (navigator.share) {
-      await navigator.share({ title: 'Join Clarity', text: 'Join my video call', url: link });
+      await navigator.share({ url: link });
       return;
     }
   } catch (_) {}
