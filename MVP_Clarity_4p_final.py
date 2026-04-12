@@ -49,14 +49,14 @@ ICON_SVG = r'''
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <defs>
     <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#00E676"/>
-      <stop offset="100%" stop-color="#00C853"/>
+      <stop offset="0%" stop-color="#25D366"/>
+      <stop offset="100%" stop-color="#128C7E"/>
     </linearGradient>
   </defs>
-  <rect width="512" height="512" rx="128" fill="#111111"/>
-  <circle cx="256" cy="256" r="170" fill="url(#g)" opacity="0.12"/>
+  <rect width="512" height="512" rx="128" fill="#075E54"/>
+  <circle cx="256" cy="256" r="170" fill="url(#g)" opacity="0.15"/>
   <path d="M162 196c0-17.7 14.3-32 32-32h92c17.7 0 32 14.3 32 32v14l48-30c21.3-13.3 48 2 48 27.2v97.6c0 25.2-26.7 40.5-48 27.2l-48-30v14c0 17.7-14.3 32-32 32h-92c-17.7 0-32-14.3-32-32V196z" fill="#FFFFFF"/>
-  <path d="M165 79l138 93-66 19-28 73z" fill="#00E676"/>
+  <path d="M165 79l138 93-66 19-28 73z" fill="#25D366"/>
 </svg>
 '''.strip()
 
@@ -70,7 +70,7 @@ MANIFEST_JSON = json.dumps(
         "display": "standalone",
         "orientation": "portrait",
         "background_color": "#FFFFFF",
-        "theme_color": "#00C853",
+        "theme_color": "#075E54",
         "icons": [
             {
                 "src": "/icon.svg",
@@ -83,7 +83,7 @@ MANIFEST_JSON = json.dumps(
 )
 
 SERVICE_WORKER_JS = r'''
-const CACHE_NAME = 'clarity-shell-v12';
+const CACHE_NAME = 'clarity-shell-v13';
 const APP_SHELL = ['/manifest.json', '/icon.svg'];
 
 self.addEventListener('install', (event) => {
@@ -137,25 +137,25 @@ INDEX_HTML = r'''
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="theme-color" content="#00C853" />
+  <meta name="theme-color" content="#075E54" />
   <title>Clarity</title>
   <link rel="manifest" href="/manifest.json" />
   <style>
     :root {
-      --green: #00C853;
-      --green-light: #69F0AE;
-      --green-dark: #00A844;
-      --green-faded: rgba(0,200,83,0.12);
+      --green: #25D366;
+      --green-light: #25D366;
+      --green-dark: #075E54;
+      --green-faded: rgba(37,211,102,0.12);
       --red: #FF3B30;
       --yellow: #FFCC00;
       --blue: #007AFF;
       --white: #FFFFFF;
-      --off-white: #F5F5F5;
-      --gray-light: #E0E0E0;
-      --gray: #9E9E9E;
-      --gray-dark: #424242;
-      --charcoal: #1E1E1E;
-      --black: #111111;
+      --off-white: #F0F2F5;
+      --gray-light: #E8E8E8;
+      --gray: #8696A0;
+      --gray-dark: #3B4A54;
+      --charcoal: #111B21;
+      --black: #111B21;
       --safe-top: env(safe-area-inset-top, 0px);
       --safe-bottom: env(safe-area-inset-bottom, 0px);
     }
@@ -182,7 +182,7 @@ INDEX_HTML = r'''
     button, input, textarea { font: inherit; }
     .hidden { display: none !important; }
 
-    /* ══════ HOME — modern dark design ══════ */
+    /* ══════ HOME — WhatsApp-style clean design ══════ */
     #homeScreen {
       display: flex;
       flex-direction: column;
@@ -191,88 +191,87 @@ INDEX_HTML = r'''
       height: 100dvh;
       padding: 32px 24px;
       padding-top: calc(32px + var(--safe-top));
-      background: linear-gradient(160deg, #0a0a0a 0%, #1a2a1a 50%, #0a0a0a 100%);
+      background: #FFFFFF;
       gap: 0;
     }
-    .logo-row { display: flex; align-items: flex-start; gap: 6px; margin-bottom: 6px; }
-    .logo-text { font-size: 56px; font-weight: 800; color: white; letter-spacing: -1px; }
-    .logo-cursor { width: 22px; height: 22px; margin-top: 12px; }
-    .logo-cursor svg { fill: var(--green); }
-    .tagline { font-size: 20px; color: rgba(255,255,255,0.5); font-weight: 500; margin-bottom: 40px; text-align: center; }
+    .logo-row { display: flex; align-items: flex-start; gap: 6px; margin-bottom: 4px; }
+    .logo-text { font-size: 42px; font-weight: 700; color: #075E54; letter-spacing: -0.5px; }
+    .logo-cursor { width: 18px; height: 18px; margin-top: 10px; }
+    .logo-cursor svg { fill: #25D366; }
+    .tagline { font-size: 16px; color: #667781; font-weight: 400; margin-bottom: 48px; text-align: center; }
 
     .quick-call-btn {
-      width: 92%; max-width: 400px; height: 100px; border-radius: 28px;
-      background: linear-gradient(135deg, #00C853 0%, #00E676 100%); border: none;
-      display: flex; align-items: center; justify-content: center; gap: 14px;
+      width: 88%; max-width: 380px; height: 64px; border-radius: 32px;
+      background: #25D366; border: none;
+      display: flex; align-items: center; justify-content: center; gap: 12px;
       cursor: pointer;
-      box-shadow: 0 10px 40px rgba(0,200,83,0.35), 0 0 80px rgba(0,200,83,0.1);
-      transition: transform 0.15s;
+      box-shadow: 0 2px 8px rgba(37,211,102,0.3);
+      transition: transform 0.15s, background 0.15s;
       -webkit-tap-highlight-color: transparent;
-      animation: pulse 3s ease-in-out infinite;
     }
-    .quick-call-btn:active { transform: scale(0.96); animation: none; }
-    @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.02)} }
-    .quick-call-btn .icon { font-size: 40px; }
-    .quick-call-btn .label { font-size: 32px; font-weight: 800; color: white; text-shadow: 0 1px 4px rgba(0,0,0,0.2); }
+    .quick-call-btn:active { transform: scale(0.97); background: #1DA855; }
+    .quick-call-btn .icon { font-size: 28px; }
+    .quick-call-btn .label { font-size: 20px; font-weight: 600; color: white; }
     .quick-call-btn .sub { display: none; }
 
     .or-divider {
       display: flex; align-items: center; gap: 16px;
-      width: 80%; max-width: 360px; margin: 32px 0 24px;
+      width: 80%; max-width: 360px; margin: 28px 0 20px;
     }
     .or-divider::before, .or-divider::after {
-      content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.15);
+      content: ''; flex: 1; height: 1px; background: #E8E8E8;
     }
-    .or-divider span { font-size: 18px; color: rgba(255,255,255,0.35); font-weight: 500; }
+    .or-divider span { font-size: 14px; color: #667781; font-weight: 500; }
 
-    .join-section { width: 92%; max-width: 400px; }
+    .join-section { width: 88%; max-width: 380px; }
     .join-label { display: none; }
-    .join-row { display: flex; gap: 12px; }
+    .join-row { display: flex; gap: 10px; }
     .join-input {
-      flex: 1; height: 72px; background: rgba(255,255,255,0.08);
-      border: 2px solid rgba(255,255,255,0.15); border-radius: 20px;
-      text-align: center; font-size: 32px; font-weight: 800;
-      letter-spacing: 5px; color: white; outline: none;
+      flex: 1; height: 56px; background: #F0F2F5;
+      border: 1.5px solid #E8E8E8; border-radius: 28px;
+      text-align: center; font-size: 24px; font-weight: 700;
+      letter-spacing: 4px; color: #111B21; outline: none;
       -webkit-appearance: none; text-transform: uppercase;
+      padding: 0 20px;
     }
-    .join-input::placeholder { font-size: 22px; letter-spacing: 2px; font-weight: 500; color: rgba(255,255,255,0.3); }
-    .join-input:focus { border-color: var(--green); background: rgba(255,255,255,0.12); }
+    .join-input::placeholder { font-size: 16px; letter-spacing: 1px; font-weight: 400; color: #8696A0; }
+    .join-input:focus { border-color: #25D366; background: #FFFFFF; }
     .join-btn {
-      height: 72px; min-width: 100px; padding: 0 24px; background: white;
-      color: var(--black); border: none; border-radius: 20px;
-      font-size: 26px; font-weight: 800; cursor: pointer;
+      height: 56px; min-width: 80px; padding: 0 24px; background: #075E54;
+      color: white; border: none; border-radius: 28px;
+      font-size: 18px; font-weight: 600; cursor: pointer;
       -webkit-tap-highlight-color: transparent;
     }
-    .join-btn:active { opacity: 0.8; }
+    .join-btn:active { opacity: 0.85; }
 
     .badge-4p { display: none; }
 
     .lang-btn {
-      margin-top: 20px; padding: 10px 32px; font-size: 18px; font-weight: 700;
-      border-radius: 20px; border: 2px solid rgba(255,255,255,0.25);
-      background: transparent; color: rgba(255,255,255,0.5); cursor: pointer;
+      margin-top: 24px; padding: 8px 28px; font-size: 14px; font-weight: 600;
+      border-radius: 20px; border: 1.5px solid #E8E8E8;
+      background: transparent; color: #667781; cursor: pointer;
       -webkit-tap-highlight-color: transparent;
       transition: all 0.2s;
     }
-    .lang-btn:active { background: rgba(255,255,255,0.1); }
+    .lang-btn:active { background: #F0F2F5; }
 
     .server-toggle {
-      margin-top: 24px; font-size: 15px; color: rgba(255,255,255,0.3);
+      margin-top: 20px; font-size: 13px; color: #8696A0;
       cursor: pointer; background: none; border: none;
       -webkit-tap-highlight-color: transparent;
     }
     .server-panel {
-      margin-top: 10px; width: 90%; max-width: 400px;
-      background: rgba(255,255,255,0.08); border-radius: 18px; padding: 16px;
+      margin-top: 10px; width: 88%; max-width: 380px;
+      background: #F0F2F5; border-radius: 16px; padding: 14px;
     }
     .server-input {
-      width: 100%; height: 52px; background: rgba(255,255,255,0.1);
-      border: 2px solid rgba(255,255,255,0.15); border-radius: 14px;
-      padding: 0 14px; font-size: 16px; color: white; outline: none;
+      width: 100%; height: 48px; background: #FFFFFF;
+      border: 1.5px solid #E8E8E8; border-radius: 24px;
+      padding: 0 16px; font-size: 15px; color: #111B21; outline: none;
       -webkit-appearance: none;
     }
     .server-hint {
-      margin-top: 8px; color: rgba(255,255,255,0.35); font-size: 14px; line-height: 1.4;
+      margin-top: 8px; color: #8696A0; font-size: 13px; line-height: 1.4;
     }
 
     .features { display: none; }
@@ -281,22 +280,22 @@ INDEX_HTML = r'''
     #callScreen {
       display: none; position: relative;
       width: 100vw; height: 100dvh;
-      background: var(--black); flex-direction: column;
+      background: #000; flex-direction: column;
     }
     #callScreen.active { display: flex; }
 
-    /* Status bar */
+    /* Status bar — WhatsApp style: minimal top overlay */
     .call-status-bar {
       position: absolute; top: 0; left: 0; right: 0; z-index: 20;
-      padding: calc(10px + var(--safe-top)) 16px 10px;
-      background: linear-gradient(to bottom, rgba(0,0,0,0.75), transparent);
+      padding: calc(8px + var(--safe-top)) 16px 12px;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.3) 60%, transparent 100%);
       display: flex; align-items: center; gap: 8px;
     }
-    .status-dot { width: 12px; height: 12px; border-radius: 50%; background: #FF9500; flex-shrink: 0; }
-    .status-dot.connected { background: var(--green); }
-    .call-status-text { flex: 1; font-size: 20px; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 700; }
-    .room-badge { background: rgba(255,255,255,0.2); padding: 8px 16px; border-radius: 12px; font-size: 20px; font-weight: 800; color: white; letter-spacing: 3px; min-width: 70px; text-align: center; }
-    .peer-count { background: rgba(0,200,83,0.35); padding: 8px 12px; border-radius: 12px; font-size: 18px; font-weight: 800; color: var(--green-light); }
+    .status-dot { width: 10px; height: 10px; border-radius: 50%; background: #FF9500; flex-shrink: 0; }
+    .status-dot.connected { background: #25D366; }
+    .call-status-text { flex: 1; font-size: 16px; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500; }
+    .room-badge { background: rgba(255,255,255,0.15); padding: 5px 12px; border-radius: 10px; font-size: 14px; font-weight: 700; color: white; letter-spacing: 2px; min-width: 60px; text-align: center; }
+    .peer-count { background: rgba(37,211,102,0.3); padding: 5px 10px; border-radius: 10px; font-size: 14px; font-weight: 700; color: #25D366; }
 
     /* Video grid */
     .video-area { flex: 1; position: relative; overflow: hidden; }
@@ -366,104 +365,108 @@ INDEX_HTML = r'''
       align-items: center; justify-content: center;
       background: var(--charcoal); z-index: 5;
     }
-    .waiting-view .emoji { font-size: 80px; margin-bottom: 20px; }
-    .waiting-view .text { font-size: 28px; color: white; font-weight: 700; }
-    .waiting-view .code { font-size: 52px; color: var(--green); font-weight: 900; letter-spacing: 8px; margin-top: 16px; }
-    .waiting-view .hint { font-size: 20px; color: #bbb; margin-top: 20px; text-align: center; padding: 0 24px; line-height: 1.5; }
+    .waiting-view .emoji { font-size: 64px; margin-bottom: 16px; }
+    .waiting-view .text { font-size: 22px; color: white; font-weight: 500; }
+    .waiting-view .code { font-size: 40px; color: #25D366; font-weight: 800; letter-spacing: 6px; margin-top: 12px; }
+    .waiting-view .hint { font-size: 16px; color: #aaa; margin-top: 16px; text-align: center; padding: 0 24px; line-height: 1.5; }
     .copy-link-btn {
-      margin-top: 28px; padding: 20px 48px;
-      background: var(--green); color: white; border: none;
-      border-radius: 22px; font-size: 26px; font-weight: 800;
+      margin-top: 24px; padding: 16px 40px;
+      background: #25D366; color: white; border: none;
+      border-radius: 28px; font-size: 18px; font-weight: 600;
       cursor: pointer; -webkit-tap-highlight-color: transparent;
-      box-shadow: 0 6px 24px rgba(0,200,83,0.4);
+      box-shadow: 0 2px 8px rgba(37,211,102,0.35);
     }
     .copy-link-btn:active { opacity: 0.85; transform: scale(0.97); }
 
-    /* PiP self-view */
+    /* PiP self-view — WhatsApp style rounded card */
     .pip {
       position: absolute;
-      top: calc(60px + var(--safe-top)); right: 10px;
-      width: 100px; height: 130px;
-      border-radius: 14px; overflow: hidden;
-      border: 3px solid white; z-index: 12;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+      top: calc(56px + var(--safe-top)); right: 8px;
+      width: 110px; height: 150px;
+      border-radius: 16px; overflow: hidden;
+      border: 2px solid rgba(255,255,255,0.5); z-index: 12;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
       background: #000;
     }
     .pip video { width: 100%; height: 100%; object-fit: cover; background: #000; }
     .pip .pip-label {
       position: absolute; bottom: 4px; left: 4px;
-      background: rgba(0,0,0,0.65);
-      padding: 3px 7px; border-radius: 5px;
-      font-size: 12px; color: white; font-weight: 800;
+      background: rgba(0,0,0,0.55);
+      padding: 2px 6px; border-radius: 4px;
+      font-size: 11px; color: white; font-weight: 600;
     }
 
-    /* Annotation bar */
+    /* Annotation bar — WhatsApp-style */
     .annotation-bar {
-      display: none; align-items: center; gap: 10px;
-      padding: 12px 16px; background: rgba(30,30,30,0.95); z-index: 15;
-      overflow-x: auto;
+      display: none; align-items: center; gap: 8px;
+      padding: 10px 14px; background: rgba(20,20,20,0.92); z-index: 15;
+      overflow-x: auto; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
     }
     .annotation-bar.active { display: flex; }
     .color-dot {
-      width: 50px; height: 50px; border-radius: 50%;
+      width: 40px; height: 40px; border-radius: 50%;
       border: 3px solid transparent; cursor: pointer;
       -webkit-tap-highlight-color: transparent;
       transition: transform 0.15s; flex-shrink: 0;
     }
     .color-dot.selected { border-color: white; transform: scale(1.15); }
-    .ann-divider { width: 1px; height: 36px; background: rgba(255,255,255,0.2); margin: 0 6px; flex-shrink: 0; }
+    .ann-divider { width: 1px; height: 30px; background: rgba(255,255,255,0.15); margin: 0 4px; flex-shrink: 0; }
     .ann-action {
-      padding: 14px 24px; background: rgba(255,255,255,0.1); border: none;
-      border-radius: 14px; color: white; font-size: 20px; font-weight: 800;
+      padding: 10px 18px; background: rgba(255,255,255,0.1); border: none;
+      border-radius: 20px; color: white; font-size: 16px; font-weight: 600;
       cursor: pointer; -webkit-tap-highlight-color: transparent; flex-shrink: 0;
     }
     .ann-action:active { opacity: 0.7; }
-    .ann-action.done { background: var(--green); }
-    .ann-action.zoom-btn { padding: 10px 18px; font-size: 28px; font-weight: 900; min-width: 52px; text-align: center; }
-    .zoom-label { color: rgba(255,255,255,0.7); font-size: 16px; font-weight: 700; min-width: 32px; text-align: center; }
+    .ann-action.done { background: #25D366; }
+    .ann-action.undo-redo { padding: 8px 14px; font-size: 22px; min-width: 44px; text-align: center; }
+    .ann-action.undo-redo:disabled { opacity: 0.3; }
+    .ann-action.zoom-btn { padding: 8px 14px; font-size: 24px; font-weight: 900; min-width: 44px; text-align: center; }
+    .zoom-label { color: rgba(255,255,255,0.7); font-size: 14px; font-weight: 600; min-width: 28px; text-align: center; }
 
-    /* Main toolbar — BIG for elderly */
+    /* Main toolbar — WhatsApp-style floating circular buttons */
     .call-toolbar {
+      position: absolute; bottom: 0; left: 0; right: 0;
       display: flex; align-items: center; justify-content: space-evenly;
-      padding: 14px 6px calc(14px + var(--safe-bottom));
-      background: rgba(30,30,30,0.95); z-index: 15;
-      gap: 4px;
+      padding: 16px 12px calc(16px + var(--safe-bottom));
+      background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.3) 60%, transparent 100%);
+      z-index: 15;
+      gap: 0;
     }
     .tool-btn {
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      min-width: 80px; height: 80px; border-radius: 20px;
-      background: rgba(255,255,255,0.1); border: none;
+      width: 60px; height: 60px; border-radius: 50%;
+      background: rgba(255,255,255,0.2); border: none;
       cursor: pointer; -webkit-tap-highlight-color: transparent; color: white;
-      padding: 6px 8px;
+      padding: 0; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
     }
-    .tool-btn:active { background: rgba(255,255,255,0.3); }
-    .tool-btn.active-state { background: rgba(255,255,255,0.3); }
-    .tool-btn .ti { font-size: 34px; }
-    .tool-btn .tl { font-size: 15px; color: white; margin-top: 3px; font-weight: 800; }
+    .tool-btn:active { background: rgba(255,255,255,0.4); }
+    .tool-btn.active-state { background: rgba(255,255,255,0.4); }
+    .tool-btn .ti { font-size: 28px; line-height: 1; }
+    .tool-btn .tl { font-size: 10px; color: rgba(255,255,255,0.85); margin-top: 2px; font-weight: 600; }
 
     .freeze-btn {
-      min-width: 92px; height: 92px; border-radius: 24px;
-      background: var(--green); border: none;
+      width: 72px; height: 72px; border-radius: 50%;
+      background: #25D366; border: none;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      cursor: pointer; box-shadow: 0 4px 20px rgba(0,200,83,0.5);
+      cursor: pointer; box-shadow: 0 4px 16px rgba(37,211,102,0.5);
       -webkit-tap-highlight-color: transparent; color: white;
-      padding: 6px 8px;
+      padding: 0;
     }
-    .freeze-btn:active { transform: scale(0.94); }
-    .freeze-btn.frozen { background: var(--green-dark); }
-    .freeze-btn .ti { font-size: 38px; }
-    .freeze-btn .tl { font-size: 16px; color: white; font-weight: 800; margin-top: 3px; }
+    .freeze-btn:active { transform: scale(0.93); }
+    .freeze-btn.frozen { background: #075E54; }
+    .freeze-btn .ti { font-size: 30px; line-height: 1; }
+    .freeze-btn .tl { font-size: 10px; color: white; font-weight: 600; margin-top: 2px; }
 
     .end-btn {
-      min-width: 80px; height: 80px; border-radius: 20px;
-      background: var(--red); border: none;
+      width: 60px; height: 60px; border-radius: 50%;
+      background: #FF3B30; border: none;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       cursor: pointer; -webkit-tap-highlight-color: transparent; color: white;
-      padding: 6px 8px;
+      padding: 0;
     }
     .end-btn:active { opacity: 0.8; }
-    .end-btn .ti { font-size: 34px; transform: rotate(135deg); }
-    .end-btn .tl { font-size: 15px; color: white; margin-top: 3px; font-weight: 800; }
+    .end-btn .ti { font-size: 28px; transform: rotate(135deg); line-height: 1; }
+    .end-btn .tl { font-size: 10px; color: white; margin-top: 2px; font-weight: 600; }
 
     .source-video { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
 
@@ -478,12 +481,12 @@ INDEX_HTML = r'''
     .toast.show { opacity: 1; }
 
     @media (max-height: 700px) {
-      .quick-call-btn { height: 80px; }
-      .quick-call-btn .label { font-size: 28px; }
-      .or-divider { margin: 16px 0 12px; }
-      .join-input { height: 60px; font-size: 28px; }
-      .join-btn { height: 60px; font-size: 22px; }
-      .tagline { margin-bottom: 20px; }
+      .quick-call-btn { height: 56px; }
+      .quick-call-btn .label { font-size: 18px; }
+      .or-divider { margin: 14px 0 10px; }
+      .join-input { height: 48px; font-size: 22px; }
+      .join-btn { height: 48px; font-size: 16px; }
+      .tagline { margin-bottom: 24px; }
     }
   </style>
 </head>
@@ -555,6 +558,9 @@ INDEX_HTML = r'''
     <div class="color-dot" style="background:#34C759" data-color="#34C759"></div>
     <div class="color-dot" style="background:#FFCC00" data-color="#FFCC00"></div>
     <div class="color-dot" style="background:#007AFF" data-color="#007AFF"></div>
+    <div class="ann-divider"></div>
+    <button class="ann-action undo-redo" id="undoBtn" disabled>↩</button>
+    <button class="ann-action undo-redo" id="redoBtn" disabled>↪</button>
     <div class="ann-divider"></div>
     <button class="ann-action zoom-btn" id="zoomOutBtn">−</button>
     <span class="zoom-label" id="zoomLabel"></span>
@@ -649,6 +655,8 @@ const I18N = {
     newPeer: 'New peer joining...',
     badCode: 'Room code must be 4–8 letters/numbers',
     autoJoinFail: 'Unable to auto-join room.',
+    undo: 'Undo',
+    redo: 'Redo',
     peersConnected: (n) => `${n} peer(s) connected`,
     peerLeft: (n) => `Peer left. ${n} remaining.`,
     waitingPeers: (room) => `Room ${room} — Waiting for others...`,
@@ -700,6 +708,8 @@ const I18N = {
     newPeer: '新成员加入中...',
     badCode: '房间号须为4-8位字母或数字',
     autoJoinFail: '无法自动加入房间。',
+    undo: '撤销',
+    redo: '重做',
     peersConnected: (n) => `${n} 人已连接`,
     peerLeft: (n) => `有人离开，剩余 ${n} 人。`,
     waitingPeers: (room) => `房间 ${room} — 等待其他人...`,
@@ -827,6 +837,10 @@ let lastPinchMidX = 0, lastPinchMidY = 0;
 // Offscreen board canvas (GPT refinement — no more Image re-encoding)
 const boardCanvas = document.createElement('canvas');
 const boardCtx = boardCanvas.getContext('2d');
+
+// Undo/redo history for annotations (local only)
+let undoStack = []; // array of board canvas data URLs
+let redoStack = [];
 
 // ═════════════════════════════════
 // HELPERS
@@ -1561,6 +1575,7 @@ function freezeFrame() {
 
 function enterFreezeMode({ remote = false } = {}) {
   isFrozen = true;
+  resetUndoRedo();
   resizeCanvas();
   frozenCanvas.classList.remove('hidden');
   annotationBar.classList.add('active');
@@ -1595,8 +1610,68 @@ function exitFreezeMode({ notify = true, silent = false } = {}) {
 
 function clearAnnotations() {
   if (!frozenBaseDataUrl) return;
+  pushUndoState(); // save before clearing
   loadFrozenImage(frozenBaseDataUrl, frozenBaseDataUrl, { remote: false });
   sendWs({ type: 'clear_annotations', base_data_url: frozenBaseDataUrl, current_data_url: frozenBaseDataUrl });
+}
+
+// ═════════════════════════════════
+// UNDO / REDO (unlimited, local only)
+// ═════════════════════════════════
+function pushUndoState() {
+  if (!hasBoard()) return;
+  undoStack.push(boardCanvas.toDataURL('image/png'));
+  redoStack = []; // new action clears redo history
+  syncUndoRedoButtons();
+}
+
+function syncUndoRedoButtons() {
+  const undoBtn = document.getElementById('undoBtn');
+  const redoBtn = document.getElementById('redoBtn');
+  if (undoBtn) undoBtn.disabled = undoStack.length === 0;
+  if (redoBtn) redoBtn.disabled = redoStack.length === 0;
+}
+
+async function undoAnnotation() {
+  if (undoStack.length === 0 || !hasBoard()) return;
+  // Save current state to redo stack
+  redoStack.push(boardCanvas.toDataURL('image/png'));
+  // Restore previous state
+  const prevState = undoStack.pop();
+  try {
+    const img = await loadImage(prevState);
+    boardCanvas.width = img.width;
+    boardCanvas.height = img.height;
+    boardCtx.clearRect(0, 0, boardCanvas.width, boardCanvas.height);
+    boardCtx.drawImage(img, 0, 0);
+    redrawFrozen();
+    sendBoardSnapshot();
+  } catch(e) { console.warn('Undo failed', e); }
+  syncUndoRedoButtons();
+}
+
+async function redoAnnotation() {
+  if (redoStack.length === 0 || !hasBoard()) return;
+  // Save current state to undo stack
+  undoStack.push(boardCanvas.toDataURL('image/png'));
+  // Restore next state
+  const nextState = redoStack.pop();
+  try {
+    const img = await loadImage(nextState);
+    boardCanvas.width = img.width;
+    boardCanvas.height = img.height;
+    boardCtx.clearRect(0, 0, boardCanvas.width, boardCanvas.height);
+    boardCtx.drawImage(img, 0, 0);
+    redrawFrozen();
+    sendBoardSnapshot();
+  } catch(e) { console.warn('Redo failed', e); }
+  syncUndoRedoButtons();
+}
+
+function resetUndoRedo() {
+  undoStack = [];
+  redoStack = [];
+  syncUndoRedoButtons();
 }
 
 function sendBoardSnapshot() {
@@ -1635,6 +1710,7 @@ function handlePointerStart(event) {
     const rect = frozenCanvas.getBoundingClientRect();
     const point = canvasToBoard(event.clientX - rect.left, event.clientY - rect.top);
     if (!point) return;
+    pushUndoState(); // save state before drawing
     isDrawing = true;
     lastX = point.x;
     lastY = point.y;
@@ -1687,7 +1763,9 @@ function handlePointerEnd(event) {
   activePointers.delete(event.pointerId);
   if (activePointers.size < 2) isPinching = false;
   if (activePointers.size === 0) {
-    if (isDrawing && hasBoard()) sendBoardSnapshot();
+    if (isDrawing && hasBoard()) {
+      sendBoardSnapshot();
+    }
     isDrawing = false;
     lastX = null;
     lastY = null;
@@ -1980,6 +2058,8 @@ flipBtn.addEventListener('click', async () => {
 
 endBtn.addEventListener('click', showHomeScreen);
 clearAnnBtn.addEventListener('click', clearAnnotations);
+document.getElementById('undoBtn').addEventListener('click', undoAnnotation);
+document.getElementById('redoBtn').addEventListener('click', redoAnnotation);
 document.getElementById('zoomInBtn').addEventListener('click', () => adjustZoom(0.5));
 document.getElementById('zoomOutBtn').addEventListener('click', () => {
   if (zoomLevel <= 1) return;
