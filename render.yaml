@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: clarity
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python MVP_Clarity_4p_final.py
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.6"
+      - key: TURN_URLS
+        sync: false
+      - key: TURN_USERNAME
+        sync: false
+      - key: TURN_CREDENTIAL
+        sync: false
+    healthCheckPath: /healthz
