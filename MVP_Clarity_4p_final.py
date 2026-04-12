@@ -83,7 +83,7 @@ MANIFEST_JSON = json.dumps(
 )
 
 SERVICE_WORKER_JS = r'''
-const CACHE_NAME = 'clarity-shell-v17';
+const CACHE_NAME = 'clarity-shell-v19';
 const APP_SHELL = ['/manifest.json', '/icon.svg'];
 
 self.addEventListener('install', (event) => {
@@ -237,12 +237,12 @@ INDEX_HTML = r'''
     .join-input::placeholder { font-size: 16px; letter-spacing: 1px; font-weight: 400; color: #8696A0; }
     .join-input:focus { border-color: #25D366; background: #FFFFFF; }
     .join-btn {
-      height: 56px; min-width: 80px; padding: 0 24px; background: #075E54;
-      color: white; border: none; border-radius: 28px;
+      height: 56px; min-width: 80px; padding: 0 24px; background: transparent;
+      color: #075E54; border: 2px solid #075E54; border-radius: 28px;
       font-size: 18px; font-weight: 600; cursor: pointer;
       -webkit-tap-highlight-color: transparent;
     }
-    .join-btn:active { opacity: 0.85; }
+    .join-btn:active { opacity: 0.7; background: rgba(7,94,84,0.08); }
 
     .badge-4p { display: none; }
 
@@ -468,6 +468,7 @@ INDEX_HTML = r'''
       cursor: pointer; -webkit-tap-highlight-color: transparent; flex-shrink: 0;
     }
     .ann-action:active { opacity: 0.7; }
+    .ann-action.save { background: rgba(0,122,255,0.8); }
     .ann-action.done { background: #25D366; }
     .ann-action.undo-redo { padding: 8px 14px; font-size: 22px; min-width: 44px; text-align: center; }
     .ann-action.undo-redo:disabled { opacity: 0.3; }
@@ -505,14 +506,14 @@ INDEX_HTML = r'''
 
     .freeze-btn {
       width: 62px; height: 62px; border-radius: 50%;
-      background: #25D366; border: none;
+      background: rgba(255,255,255,0.22); border: 2px solid rgba(255,255,255,0.35);
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       cursor: pointer; box-shadow: 0 2px 12px rgba(37,211,102,0.4);
       -webkit-tap-highlight-color: transparent; color: white;
       padding: 0; flex-shrink: 0; gap: 2px;
     }
     .freeze-btn:active { transform: scale(0.93); }
-    .freeze-btn.frozen { background: #075E54; }
+    .freeze-btn.frozen { background: #25D366; border-color: #25D366; }
     .freeze-btn svg { width: 24px; height: 24px; fill: currentColor; flex-shrink: 0; }
     .freeze-btn .tl { font-size: 9px; font-weight: 700; color: white; line-height: 1; }
 
@@ -581,7 +582,7 @@ INDEX_HTML = r'''
     <button class="big-text-btn" id="bigTextBtn" data-i18n-label="bigText">大字 Aa+</button>
   </div>
 
-  <button class="server-toggle" id="serverToggle">&#9656; Server</button>
+  <button class="server-toggle hidden" id="serverToggle">&#9656; Server</button>
   <div class="server-panel hidden" id="serverPanel">
     <input class="server-input" id="serverUrlInput" placeholder="https://your-server.example" autocomplete="off" />
     <div class="server-hint" data-i18n="serverHint">Leave blank to use this page's server.</div>
@@ -630,6 +631,7 @@ INDEX_HTML = r'''
     <button class="ann-action zoom-btn" id="zoomInBtn">+</button>
     <div class="ann-divider"></div>
     <button class="ann-action" id="clearAnnBtn" data-i18n="clearAll">Clear All</button>
+    <button class="ann-action save" id="saveAnnBtn" data-i18n="saveImg">💾 Save</button>
     <button class="ann-action done" id="unfreezeBtn" data-i18n="resume">▶ Resume</button>
   </div>
 
@@ -693,6 +695,7 @@ const I18N = {
     shareInvite: 'Share Invite Link',
     linkCopied: 'Link Copied!',
     clearAll: 'Clear All',
+    saveImg: '💾 Save',
     resume: '▶ Resume',
     mic: 'Mic',
     unmute: 'Unmute',
@@ -711,6 +714,7 @@ const I18N = {
     requestingCam: 'Requesting camera/mic…',
     watchMode: 'Camera/mic unavailable. Joining in watch mode.',
     noFlipCam: 'No camera available to flip.',
+    singleCam: 'This device only has one camera.',
     flipFailed: 'Could not flip camera on this device/browser.',
     noVideoFreeze: 'No video to freeze yet',
     frozenShared: 'Frozen — shared board',
@@ -746,6 +750,7 @@ const I18N = {
     shareInvite: '分享邀请链接',
     linkCopied: '链接已复制！',
     clearAll: '清除标注',
+    saveImg: '💾 保存',
     resume: '▶ 恢复',
     mic: '麦克风',
     unmute: '取消静音',
@@ -764,6 +769,7 @@ const I18N = {
     requestingCam: '正在请求摄像头/麦克风…',
     watchMode: '摄像头/麦克风不可用，以观看模式加入。',
     noFlipCam: '没有可翻转的摄像头。',
+    singleCam: '此设备只有一个摄像头。',
     flipFailed: '此设备/浏览器无法翻转摄像头。',
     noVideoFreeze: '还没有视频可冻结',
     frozenShared: '已冻结 — 共享画板',
@@ -1500,6 +1506,10 @@ async function replaceVideoTrack(newTrack) {
 }
 
 async function flipCamera() {
+  if (!hasMultipleCameras) {
+    showToast(t('singleCam'));
+    return;
+  }
   const currentVideoTrack = localStream?.getVideoTracks?.()[0];
   if (!currentVideoTrack) {
     setStatus(t('noFlipCam'), false);
@@ -1735,6 +1745,28 @@ function clearAnnotations() {
   pushUndoState(); // save before clearing
   loadFrozenImage(frozenBaseDataUrl, frozenBaseDataUrl, { remote: false });
   sendWs({ type: 'clear_annotations', base_data_url: frozenBaseDataUrl, current_data_url: frozenBaseDataUrl });
+}
+
+function saveAnnotatedImage() {
+  if (!hasBoard()) { showToast('Nothing to save'); return; }
+  const merged = document.createElement('canvas');
+  merged.width = frozenCanvas.width;
+  merged.height = frozenCanvas.height;
+  const ctx = merged.getContext('2d');
+  ctx.drawImage(frozenCanvas, 0, 0);
+  ctx.drawImage(boardCanvas, 0, 0, boardCanvas.width, boardCanvas.height, 0, 0, merged.width, merged.height);
+  merged.toBlob(function(blob) {
+    if (!blob) { showToast('Save failed'); return; }
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'clarity-annotation-' + Date.now() + '.png';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast(currentLang === 'zh' ? '已保存' : 'Saved!');
+  }, 'image/png');
 }
 
 // ═════════════════════════════════
@@ -2183,6 +2215,7 @@ flipBtn.addEventListener('click', async () => {
 
 endBtn.addEventListener('click', showHomeScreen);
 clearAnnBtn.addEventListener('click', clearAnnotations);
+document.getElementById('saveAnnBtn').addEventListener('click', saveAnnotatedImage);
 document.getElementById('undoBtn').addEventListener('click', undoAnnotation);
 document.getElementById('redoBtn').addEventListener('click', redoAnnotation);
 document.getElementById('zoomInBtn').addEventListener('click', () => adjustZoom(0.5));
