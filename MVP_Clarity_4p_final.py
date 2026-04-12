@@ -83,7 +83,7 @@ MANIFEST_JSON = json.dumps(
 )
 
 SERVICE_WORKER_JS = r'''
-const CACHE_NAME = 'clarity-shell-v8';
+const CACHE_NAME = 'clarity-shell-v9';
 const APP_SHELL = ['/manifest.json', '/icon.svg'];
 
 self.addEventListener('install', (event) => {
@@ -134,6 +134,7 @@ INDEX_HTML = r'''
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="theme-color" content="#00C853" />
@@ -345,6 +346,8 @@ INDEX_HTML = r'''
       padding: 4px 10px; border-radius: 8px;
       font-size: 15px; font-weight: 700; color: white; z-index: 5;
     }
+    .video-cell.selected { border: 3px solid var(--green); border-radius: 8px; }
+    .pip.selected { border-color: var(--green); }
 
     /* Frozen canvas overlay */
     #frozenCanvas {
@@ -533,6 +536,7 @@ INDEX_HTML = r'''
       <div class="emoji">📹</div>
       <div class="text" data-i18n="waitingOthers">Waiting for others...</div>
       <div class="code" id="waitingRoomCode"></div>
+      <div id="qrCanvas" style="background:white; border-radius:12px; padding:10px; margin:12px auto; display:inline-block;"></div>
       <div class="hint" data-i18n="waitingHint">Tap below to invite someone</div>
       <button class="copy-link-btn" id="copyLinkBtn2" data-i18n="shareInvite">📤 Share Invite Link</button>
     </div>
@@ -636,6 +640,9 @@ const I18N = {
     frozenShared: 'Frozen — shared board',
     frozenDraw: 'Frozen — draw to annotate',
     screenshotHint: '📸 Tip: Use your phone\'s screenshot to save this frame',
+    videoSelected: '✅ Selected — freeze will capture this video',
+    localSelected: '✅ Selected your camera — freeze will capture your view',
+    videoAuto: 'Auto mode — freeze captures remote video',
     live: 'Live',
     allLeft: 'All peers left',
     networkIssue: 'Network issue. Retrying...',
@@ -684,6 +691,9 @@ const I18N = {
     frozenShared: '已冻结 — 共享画板',
     frozenDraw: '已冻结 — 在画面上标注',
     screenshotHint: '📸 提示：可以用手机截图功能保存当前画面',
+    videoSelected: '✅ 已选中 — 冻结将捕获此视频',
+    localSelected: '✅ 已选中你的摄像头 — 冻结将捕获你的画面',
+    videoAuto: '自动模式 — 冻结捕获对方视频',
     live: '通话中',
     allLeft: '所有人已离开',
     networkIssue: '网络问题，重试中...',
@@ -806,6 +816,7 @@ let penWidth = 4;
 let isDrawing = false;
 let lastX = null, lastY = null;
 // Zoom & pan state for frozen canvas
+let selectedFreezeTarget = null; // null = auto (first remote), 'local' = my camera, or peerId
 let zoomLevel = 1;
 let panX = 0, panY = 0;
 let isPinching = false;
@@ -867,6 +878,24 @@ function getJoinLink() {
   const url = new URL(getShareBase());
   url.searchParams.set('room', currentRoom);
   return url.toString();
+}
+
+function generateQR() {
+  const link = getJoinLink();
+  if (!link) return;
+  const container = document.getElementById('qrCanvas');
+  if (!container) return;
+  container.innerHTML = '';
+  try {
+    new QRCode(container, {
+      text: link,
+      width: 164,
+      height: 164,
+      colorDark: '#000000',
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.M,
+    });
+  } catch(e) { console.warn('QR generation failed', e); }
 }
 
 let toastTimer = null;
@@ -1045,6 +1074,7 @@ function rebuildVideoGrid() {
     const p = peers[pid];
     const cell = document.createElement('div');
     cell.className = 'video-cell';
+    if (selectedFreezeTarget === pid) cell.classList.add('selected');
 
     const video = document.createElement('video');
     video.autoplay = true;
@@ -1059,9 +1089,19 @@ function rebuildVideoGrid() {
     tag.textContent = p.label || `${t('peer')} ${pid.slice(0,4)}`;
     cell.appendChild(tag);
 
+    // Tap to select this peer's video for freezing
+    cell.addEventListener('click', () => {
+      selectedFreezeTarget = (selectedFreezeTarget === pid) ? null : pid;
+      rebuildVideoGrid();
+      showToast(selectedFreezeTarget ? t('videoSelected') : t('videoAuto'), 2000);
+    });
+
     videoGrid.appendChild(cell);
     safePlay(video, false);
   });
+
+  // Update PIP selection state
+  pipContainer.classList.toggle('selected', selectedFreezeTarget === 'local');
 
   updatePeerCount();
 }
@@ -1456,13 +1496,27 @@ function captureVideoFrame(videoEl) {
 }
 
 function freezeFrame() {
-  // Try to capture from the first remote peer's video, or local
+  // Determine which video to freeze based on selection
   let sourceVideo = null;
-  const firstPeer = Object.values(peers)[0];
-  if (firstPeer?.videoEl && firstPeer.videoEl.readyState >= 2 && firstPeer.videoEl.videoWidth > 0) {
-    sourceVideo = firstPeer.videoEl;
-  } else if (localVideoSrc.readyState >= 2 && localVideoSrc.videoWidth > 0) {
-    sourceVideo = localVideoSrc;
+  if (selectedFreezeTarget === 'local') {
+    // User selected their own camera
+    if (localVideoSrc.readyState >= 2 && localVideoSrc.videoWidth > 0) {
+      sourceVideo = localVideoSrc;
+    }
+  } else if (selectedFreezeTarget && peers[selectedFreezeTarget]) {
+    // User selected a specific peer
+    const p = peers[selectedFreezeTarget];
+    if (p.videoEl?.readyState >= 2 && p.videoEl.videoWidth > 0) {
+      sourceVideo = p.videoEl;
+    }
+  } else {
+    // Auto: first remote peer, fallback to local
+    const firstPeer = Object.values(peers)[0];
+    if (firstPeer?.videoEl && firstPeer.videoEl.readyState >= 2 && firstPeer.videoEl.videoWidth > 0) {
+      sourceVideo = firstPeer.videoEl;
+    } else if (localVideoSrc.readyState >= 2 && localVideoSrc.videoWidth > 0) {
+      sourceVideo = localVideoSrc;
+    }
   }
   if (!sourceVideo) { setStatus(t('noVideoFreeze')); return; }
 
@@ -1746,6 +1800,7 @@ function cleanup() {
   cleanupSocket();
   currentRoom = null;
   myPeerId = null;
+  selectedFreezeTarget = null;
   exitFreezeMode({ notify: false, silent: true });
   clearBoard();
   waitingView.classList.remove('hidden');
@@ -1789,6 +1844,7 @@ async function startRoom(roomCode) {
   roomBadge.textContent = room;
   waitingRoomCode.textContent = room;
   waitingView.classList.remove('hidden');
+  generateQR();
 
   try {
     await connectWs(room);
@@ -1835,6 +1891,15 @@ serverToggle.addEventListener('click', () => {
 
 serverUrlInput.addEventListener('change', persistServerBase);
 serverUrlInput.addEventListener('blur', persistServerBase);
+
+// Tap PIP to select own camera for freeze
+pipContainer.addEventListener('click', () => {
+  selectedFreezeTarget = (selectedFreezeTarget === 'local') ? null : 'local';
+  pipContainer.classList.toggle('selected', selectedFreezeTarget === 'local');
+  // Remove selection from grid cells
+  videoGrid.querySelectorAll('.video-cell').forEach(c => c.classList.remove('selected'));
+  showToast(selectedFreezeTarget === 'local' ? t('localSelected') : t('videoAuto'), 2000);
+});
 
 async function autoShare() {
   const link = getJoinLink();
