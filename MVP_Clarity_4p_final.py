@@ -83,7 +83,7 @@ MANIFEST_JSON = json.dumps(
 )
 
 SERVICE_WORKER_JS = r'''
-const CACHE_NAME = 'clarity-shell-v11';
+const CACHE_NAME = 'clarity-shell-v12';
 const APP_SHELL = ['/manifest.json', '/icon.svg'];
 
 self.addEventListener('install', (event) => {
@@ -817,6 +817,7 @@ let isDrawing = false;
 let lastX = null, lastY = null;
 // Zoom & pan state for frozen canvas
 let selectedFreezeTarget = null; // null = auto (first remote), 'local' = my camera, or peerId
+let isSwapped = false; // true = local video in main grid, remote in PIP
 let zoomLevel = 1;
 let panX = 0, panY = 0;
 let isPinching = false;
@@ -1068,40 +1069,73 @@ function syncLocalButtonStates() {
 function rebuildVideoGrid() {
   const peerIds = Object.keys(peers);
   videoGrid.innerHTML = '';
-  videoGrid.setAttribute('data-count', String(peerIds.length));
 
-  peerIds.forEach(pid => {
-    const p = peers[pid];
+  if (isSwapped && peerIds.length > 0) {
+    // Swapped: show LOCAL in grid, REMOTE in PIP
+    videoGrid.setAttribute('data-count', '1');
+
     const cell = document.createElement('div');
     cell.className = 'video-cell';
-    if (selectedFreezeTarget === pid) cell.classList.add('selected');
-
     const video = document.createElement('video');
     video.autoplay = true;
     video.playsInline = true;
-    video.muted = false;
-    if (p.remoteStream) video.srcObject = p.remoteStream;
-    p.videoEl = video;
+    video.muted = true; // local is always muted
+    video.srcObject = localStream;
     cell.appendChild(video);
 
     const tag = document.createElement('div');
     tag.className = 'name-tag';
-    tag.textContent = p.label || `${t('peer')} ${pid.slice(0,4)}`;
+    tag.textContent = t('you');
     cell.appendChild(tag);
 
-    // Tap to select this peer's video for freezing
-    cell.addEventListener('click', () => {
-      selectedFreezeTarget = (selectedFreezeTarget === pid) ? null : pid;
-      rebuildVideoGrid();
-      showToast(selectedFreezeTarget ? t('videoSelected') : t('videoAuto'), 2000);
+    videoGrid.appendChild(cell);
+    safePlay(video, true);
+
+    // PIP shows first remote peer
+    const firstPeer = peers[peerIds[0]];
+    if (firstPeer?.remoteStream) {
+      pipVideo.srcObject = firstPeer.remoteStream;
+      pipVideo.muted = false;
+      safePlay(pipVideo, false);
+    }
+    const pipLabel = pipContainer.querySelector('.pip-label');
+    if (pipLabel) pipLabel.textContent = firstPeer?.label || `${t('peer')} ${peerIds[0].slice(0,4)}`;
+
+  } else {
+    // Normal: show REMOTE peers in grid, LOCAL in PIP
+    videoGrid.setAttribute('data-count', String(peerIds.length));
+
+    peerIds.forEach(pid => {
+      const p = peers[pid];
+      const cell = document.createElement('div');
+      cell.className = 'video-cell';
+
+      const video = document.createElement('video');
+      video.autoplay = true;
+      video.playsInline = true;
+      video.muted = false;
+      if (p.remoteStream) video.srcObject = p.remoteStream;
+      p.videoEl = video;
+      cell.appendChild(video);
+
+      const tag = document.createElement('div');
+      tag.className = 'name-tag';
+      tag.textContent = p.label || `${t('peer')} ${pid.slice(0,4)}`;
+      cell.appendChild(tag);
+
+      videoGrid.appendChild(cell);
+      safePlay(video, false);
     });
 
-    videoGrid.appendChild(cell);
-    safePlay(video, false);
-  });
-
-  // Update PIP selection state
-  pipContainer.classList.toggle('selected', selectedFreezeTarget === 'local');
+    // PIP shows local
+    if (localStream) {
+      pipVideo.srcObject = localStream;
+      pipVideo.muted = true;
+      safePlay(pipVideo, true);
+    }
+    const pipLabel = pipContainer.querySelector('.pip-label');
+    if (pipLabel) pipLabel.textContent = t('you');
+  }
 
   updatePeerCount();
 }
@@ -1801,6 +1835,7 @@ function cleanup() {
   currentRoom = null;
   myPeerId = null;
   selectedFreezeTarget = null;
+  isSwapped = false;
   exitFreezeMode({ notify: false, silent: true });
   clearBoard();
   waitingView.classList.remove('hidden');
@@ -1892,13 +1927,12 @@ serverToggle.addEventListener('click', () => {
 serverUrlInput.addEventListener('change', persistServerBase);
 serverUrlInput.addEventListener('blur', persistServerBase);
 
-// Tap PIP to select own camera for freeze
+// Tap PIP to swap main/PIP views (like WeChat)
 pipContainer.addEventListener('click', () => {
-  selectedFreezeTarget = (selectedFreezeTarget === 'local') ? null : 'local';
-  pipContainer.classList.toggle('selected', selectedFreezeTarget === 'local');
-  // Remove selection from grid cells
-  videoGrid.querySelectorAll('.video-cell').forEach(c => c.classList.remove('selected'));
-  showToast(selectedFreezeTarget === 'local' ? t('localSelected') : t('videoAuto'), 2000);
+  if (Object.keys(peers).length === 0) return; // nothing to swap
+  isSwapped = !isSwapped;
+  selectedFreezeTarget = isSwapped ? 'local' : null;
+  rebuildVideoGrid();
 });
 
 async function autoShare() {
