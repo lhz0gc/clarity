@@ -83,7 +83,7 @@ MANIFEST_JSON = json.dumps(
 )
 
 SERVICE_WORKER_JS = r'''
-const CACHE_NAME = 'clarity-shell-v16';
+const CACHE_NAME = 'clarity-shell-v17';
 const APP_SHELL = ['/manifest.json', '/icon.svg'];
 
 self.addEventListener('install', (event) => {
@@ -198,7 +198,7 @@ INDEX_HTML = r'''
     .logo-text { font-size: 42px; font-weight: 700; color: #075E54; letter-spacing: -0.5px; }
     .logo-cursor { width: 18px; height: 18px; margin-top: 10px; }
     .logo-cursor svg { fill: #25D366; }
-    .tagline { font-size: 17px; color: #54656F; font-weight: 500; margin-bottom: 48px; text-align: center; }
+    .tagline { font-size: 17px; color: #54656F; font-weight: 500; margin-bottom: 40px; text-align: center; }
 
     .quick-call-btn {
       width: 88%; max-width: 380px; height: 64px; border-radius: 32px;
@@ -210,13 +210,13 @@ INDEX_HTML = r'''
       -webkit-tap-highlight-color: transparent;
     }
     .quick-call-btn:active { transform: scale(0.97); background: #1DA855; }
-    .quick-call-btn .icon { font-size: 28px; }
+    .quick-call-btn .icon { font-size: 28px; display: flex; align-items: center; }
     .quick-call-btn .label { font-size: 20px; font-weight: 600; color: white; }
     .quick-call-btn .sub { display: none; }
 
     .or-divider {
       display: flex; align-items: center; gap: 16px;
-      width: 80%; max-width: 360px; margin: 28px 0 20px;
+      width: 80%; max-width: 360px; margin: 24px 0 18px;
     }
     .or-divider::before, .or-divider::after {
       content: ''; flex: 1; height: 1px; background: #E8E8E8;
@@ -246,17 +246,31 @@ INDEX_HTML = r'''
 
     .badge-4p { display: none; }
 
+    /* Bottom settings row: lang + large text */
+    .home-bottom-row {
+      display: flex; align-items: center; justify-content: center;
+      gap: 12px; margin-top: 28px;
+    }
     .lang-btn {
-      margin-top: 24px; padding: 8px 28px; font-size: 14px; font-weight: 600;
-      border-radius: 20px; border: 1.5px solid #E8E8E8;
-      background: transparent; color: #667781; cursor: pointer;
+      padding: 10px 28px; font-size: 16px; font-weight: 600;
+      border-radius: 24px; border: 1.5px solid #D1D7DB;
+      background: #F0F2F5; color: #3B4A54; cursor: pointer;
       -webkit-tap-highlight-color: transparent;
       transition: all 0.2s;
     }
-    .lang-btn:active { background: #F0F2F5; }
+    .lang-btn:active { background: #E2E5E8; }
+    .big-text-btn {
+      padding: 10px 24px; font-size: 20px; font-weight: 800;
+      border-radius: 24px; border: 1.5px solid #D1D7DB;
+      background: #F0F2F5; color: #3B4A54; cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: all 0.2s; line-height: 1;
+    }
+    .big-text-btn:active { background: #E2E5E8; }
+    .big-text-btn.active { background: #075E54; color: white; border-color: #075E54; }
 
     .server-toggle {
-      margin-top: 20px; font-size: 13px; color: #8696A0;
+      margin-top: 16px; font-size: 13px; color: #8696A0;
       cursor: pointer; background: none; border: none;
       -webkit-tap-highlight-color: transparent;
     }
@@ -275,6 +289,43 @@ INDEX_HTML = r'''
     }
 
     .features { display: none; }
+
+    /* ══════ LARGE TEXT MODE (大字版) ══════ */
+    body.large-text .logo-text { font-size: 52px; }
+    body.large-text .tagline { font-size: 22px; }
+    body.large-text .quick-call-btn { height: 80px; }
+    body.large-text .quick-call-btn .label { font-size: 28px; }
+    body.large-text .quick-call-btn .icon svg { width: 32px; height: 32px; }
+    body.large-text .or-divider span { font-size: 18px; }
+    body.large-text .join-input { height: 68px; font-size: 30px; }
+    body.large-text .join-input::placeholder { font-size: 20px; }
+    body.large-text .join-btn { height: 68px; font-size: 24px; min-width: 100px; }
+    body.large-text .lang-btn { font-size: 20px; padding: 12px 32px; }
+    body.large-text .big-text-btn { font-size: 24px; padding: 12px 28px; }
+    body.large-text .call-status-text { font-size: 18px; }
+    body.large-text .room-badge { font-size: 16px; padding: 6px 12px; }
+    body.large-text .peer-count { font-size: 16px; padding: 6px 12px; }
+    body.large-text .waiting-view .text { font-size: 28px; }
+    body.large-text .waiting-view .code { font-size: 50px; }
+    body.large-text .waiting-view .hint { font-size: 20px; }
+    body.large-text .copy-link-btn { font-size: 22px; padding: 18px 44px; }
+    body.large-text .tool-btn { width: 64px; height: 64px; }
+    body.large-text .tool-btn svg { width: 28px; height: 28px; }
+    body.large-text .tool-btn .tl { font-size: 11px; }
+    body.large-text .freeze-btn { width: 72px; height: 72px; }
+    body.large-text .freeze-btn svg { width: 28px; height: 28px; }
+    body.large-text .freeze-btn .tl { font-size: 11px; }
+    body.large-text .end-btn { width: 64px; height: 64px; }
+    body.large-text .end-btn svg { width: 28px; height: 28px; }
+    body.large-text .end-btn .tl { font-size: 11px; }
+    body.large-text .toolbar-pill { gap: 10px; padding: 10px 14px; }
+    body.large-text .pip { width: 130px; height: 175px; }
+    body.large-text .pip .pip-label { font-size: 14px; }
+    body.large-text .color-dot { width: 48px; height: 48px; }
+    body.large-text .ann-action { font-size: 20px; padding: 12px 20px; }
+    body.large-text .ann-action.zoom-btn { font-size: 28px; }
+    body.large-text .ann-action.undo-redo { font-size: 26px; }
+    body.large-text .toast { font-size: 20px; padding: 16px 28px; }
 
     /* ══════ CALL SCREEN ══════ */
     #callScreen {
@@ -491,10 +542,11 @@ INDEX_HTML = r'''
     @media (max-height: 700px) {
       .quick-call-btn { height: 56px; }
       .quick-call-btn .label { font-size: 18px; }
-      .or-divider { margin: 14px 0 10px; }
+      .or-divider { margin: 12px 0 10px; }
       .join-input { height: 48px; font-size: 22px; }
       .join-btn { height: 48px; font-size: 16px; }
-      .tagline { margin-bottom: 24px; }
+      .tagline { margin-bottom: 20px; }
+      .home-bottom-row { margin-top: 16px; }
     }
   </style>
 </head>
@@ -510,8 +562,6 @@ INDEX_HTML = r'''
   </div>
   <div class="tagline" data-i18n="tagline">See Together. Guide Better.</div>
 
-  <button class="lang-btn" id="langBtn" onclick="toggleLang()">中文</button>
-
   <button class="quick-call-btn" id="quickCallBtn">
     <span class="icon"><svg viewBox="0 0 24 24" width="26" height="26" fill="white"><path d="M17 10.5V7a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-3.5l4 4v-11l-4 4z"/></svg></span>
     <span class="label" data-i18n="startCall">Start Call</span>
@@ -524,6 +574,11 @@ INDEX_HTML = r'''
       <input class="join-input" id="homeRoomInput" data-i18n="roomPlaceholder" placeholder="Room Code" maxlength="8" autocapitalize="characters" autocomplete="off" />
       <button class="join-btn" id="homeJoinBtn" data-i18n="join">Join</button>
     </div>
+  </div>
+
+  <div class="home-bottom-row">
+    <button class="lang-btn" id="langBtn" onclick="toggleLang()">中文</button>
+    <button class="big-text-btn" id="bigTextBtn" data-i18n-label="bigText">大字 Aa+</button>
   </div>
 
   <button class="server-toggle" id="serverToggle">&#9656; Server</button>
@@ -749,13 +804,38 @@ function applyLang() {
   // Language toggle button
   const langBtn = document.getElementById('langBtn');
   if (langBtn) langBtn.textContent = currentLang === 'en' ? '中文' : 'EN';
-  // Toolbar labels (only update if not dynamically changed)
+  // Refresh big text button label (bilingual)
+  if (typeof applyBigText === 'function') applyBigText();
+  // Toolbar labels
   syncToolbarLabels();
 }
 
 function toggleLang() {
   currentLang = currentLang === 'en' ? 'zh' : 'en';
   applyLang();
+}
+
+// ═════════════════════════════════
+// LARGE TEXT MODE (大字版)
+// ═════════════════════════════════
+const BIG_TEXT_KEY = 'clarity.bigText';
+let isBigText = localStorage.getItem(BIG_TEXT_KEY) === '1';
+
+function applyBigText() {
+  document.body.classList.toggle('large-text', isBigText);
+  const btn = document.getElementById('bigTextBtn');
+  if (btn) {
+    btn.classList.toggle('active', isBigText);
+    btn.textContent = isBigText
+      ? (currentLang === 'zh' ? '标准字体' : 'Aa−')
+      : (currentLang === 'zh' ? '大字 Aa+' : 'Aa+');
+  }
+  localStorage.setItem(BIG_TEXT_KEY, isBigText ? '1' : '0');
+}
+
+function toggleBigText() {
+  isBigText = !isBigText;
+  applyBigText();
 }
 
 function syncToolbarLabels() {
@@ -1990,6 +2070,8 @@ async function startRoom(roomCode) {
 // ═════════════════════════════════
 // EVENT BINDINGS
 // ═════════════════════════════════
+document.getElementById('bigTextBtn').addEventListener('click', toggleBigText);
+
 quickCallBtn.addEventListener('click', async () => {
   isAutoJoin = false;
   await startRoom(randomCode());
@@ -2107,6 +2189,7 @@ if ('serviceWorker' in navigator) {
 
 // Auto-join from URL
 (async function init() {
+  applyBigText();
   applyLang();
   hydrateServerBase();
   syncLocalButtonStates();
