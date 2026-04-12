@@ -83,7 +83,7 @@ MANIFEST_JSON = json.dumps(
 )
 
 SERVICE_WORKER_JS = r'''
-const CACHE_NAME = 'clarity-shell-v6';
+const CACHE_NAME = 'clarity-shell-v7';
 const APP_SHELL = ['/manifest.json', '/icon.svg'];
 
 self.addEventListener('install', (event) => {
@@ -245,6 +245,15 @@ INDEX_HTML = r'''
     .join-btn:active { opacity: 0.8; }
 
     .badge-4p { display: none; }
+
+    .lang-btn {
+      margin-top: 16px; padding: 8px 28px; font-size: 18px; font-weight: 700;
+      border-radius: 20px; border: 2px solid var(--gray);
+      background: transparent; color: var(--gray); cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: all 0.2s;
+    }
+    .lang-btn:active { background: var(--off-white); }
 
     .server-toggle {
       margin-top: 24px; font-size: 15px; color: var(--gray);
@@ -473,26 +482,28 @@ INDEX_HTML = r'''
       <svg viewBox="0 0 24 24" width="20" height="20"><path d="M5 2l14 10-7 2-3 7z"/></svg>
     </div>
   </div>
-  <div class="tagline">See Together. Guide Better.</div>
+  <div class="tagline" data-i18n="tagline">See Together. Guide Better.</div>
+
+  <button class="lang-btn" id="langBtn" onclick="toggleLang()">中文</button>
 
   <button class="quick-call-btn" id="quickCallBtn">
     <span class="icon">📹</span>
-    <span class="label">Start Call</span>
+    <span class="label" data-i18n="startCall">Start Call</span>
   </button>
 
-  <div class="or-divider"><span>or</span></div>
+  <div class="or-divider"><span data-i18n="or">or</span></div>
 
   <div class="join-section">
     <div class="join-row">
-      <input class="join-input" id="homeRoomInput" placeholder="Room Code" maxlength="8" autocapitalize="characters" autocomplete="off" />
-      <button class="join-btn" id="homeJoinBtn">Join</button>
+      <input class="join-input" id="homeRoomInput" data-i18n="roomPlaceholder" placeholder="Room Code" maxlength="8" autocapitalize="characters" autocomplete="off" />
+      <button class="join-btn" id="homeJoinBtn" data-i18n="join">Join</button>
     </div>
   </div>
 
   <button class="server-toggle" id="serverToggle">&#9656; Server</button>
   <div class="server-panel hidden" id="serverPanel">
     <input class="server-input" id="serverUrlInput" placeholder="https://your-server.example" autocomplete="off" />
-    <div class="server-hint">Leave blank to use this page's server.</div>
+    <div class="server-hint" data-i18n="serverHint">Leave blank to use this page's server.</div>
   </div>
 </div>
 
@@ -500,7 +511,7 @@ INDEX_HTML = r'''
 <div id="callScreen">
   <div class="call-status-bar">
     <div class="status-dot" id="statusDot"></div>
-    <div class="call-status-text" id="callStatusText">Connecting...</div>
+    <div class="call-status-text" id="callStatusText" data-i18n="connecting">Connecting...</div>
     <div class="peer-count" id="peerCount">1/4</div>
     <div class="room-badge" id="roomBadge"></div>
   </div>
@@ -508,10 +519,10 @@ INDEX_HTML = r'''
   <div class="video-area" id="videoArea">
     <div class="waiting-view" id="waitingView">
       <div class="emoji">📹</div>
-      <div class="text">Waiting for others...</div>
+      <div class="text" data-i18n="waitingOthers">Waiting for others...</div>
       <div class="code" id="waitingRoomCode"></div>
-      <div class="hint">Tap below to invite someone</div>
-      <button class="copy-link-btn" id="copyLinkBtn2">📤 Share Invite Link</button>
+      <div class="hint" data-i18n="waitingHint">Tap below to invite someone</div>
+      <button class="copy-link-btn" id="copyLinkBtn2" data-i18n="shareInvite">📤 Share Invite Link</button>
     </div>
 
     <div class="video-grid" id="videoGrid" data-count="0"></div>
@@ -519,7 +530,7 @@ INDEX_HTML = r'''
 
     <div class="pip" id="pipContainer">
       <video id="pipVideo" autoplay playsinline muted></video>
-      <div class="pip-label">You</div>
+      <div class="pip-label" data-i18n="you">You</div>
     </div>
   </div>
 
@@ -529,25 +540,25 @@ INDEX_HTML = r'''
     <div class="color-dot" style="background:#FFCC00" data-color="#FFCC00"></div>
     <div class="color-dot" style="background:#007AFF" data-color="#007AFF"></div>
     <div class="ann-divider"></div>
-    <button class="ann-action" id="clearAnnBtn">Clear All</button>
-    <button class="ann-action done" id="unfreezeBtn">&#9654; Resume</button>
+    <button class="ann-action" id="clearAnnBtn" data-i18n="clearAll">Clear All</button>
+    <button class="ann-action done" id="unfreezeBtn" data-i18n="resume">▶ Resume</button>
   </div>
 
   <div class="call-toolbar" id="callToolbar">
     <button class="tool-btn" id="muteBtn">
-      <span class="ti">🎤</span><span class="tl">Mic</span>
+      <span class="ti">🎤</span><span class="tl" data-i18n="mic">Mic</span>
     </button>
     <button class="tool-btn" id="flipBtn">
-      <span class="ti">🔄</span><span class="tl">Flip</span>
+      <span class="ti">🔄</span><span class="tl" data-i18n="flip">Flip</span>
     </button>
     <button class="freeze-btn" id="freezeBtn">
-      <span class="ti">⏸</span><span class="tl">Freeze</span>
+      <span class="ti">⏸</span><span class="tl" data-i18n="freeze">Freeze</span>
     </button>
     <button class="tool-btn" id="shareBtn2">
-      <span class="ti">📤</span><span class="tl">Share</span>
+      <span class="ti">📤</span><span class="tl" data-i18n="share">Share</span>
     </button>
     <button class="end-btn" id="endBtn">
-      <span class="ti">📞</span><span class="tl">End</span>
+      <span class="ti">📞</span><span class="tl" data-i18n="end">End</span>
     </button>
   </div>
 </div>
@@ -564,6 +575,161 @@ const TURN_USERNAME = "__TURN_USERNAME__";
 const TURN_CREDENTIAL = "__TURN_CREDENTIAL__";
 const SERVER_STORAGE_KEY = 'clarity.serverBase';
 const ROOM_CODE_RE = /^[A-Z0-9]{4,8}$/;
+
+// ═════════════════════════════════
+// i18n — LANGUAGE SYSTEM
+// ═════════════════════════════════
+const LANG_KEY = 'clarity.lang';
+const I18N = {
+  en: {
+    tagline: 'See Together. Guide Better.',
+    startCall: 'Start Call',
+    or: 'or',
+    roomPlaceholder: 'Room Code',
+    join: 'Join',
+    serverToggleOpen: '▾ Server Settings',
+    serverToggleClosed: '▸ Server',
+    serverHint: "Leave blank to use this page's server.",
+    connecting: 'Connecting...',
+    waitingOthers: 'Waiting for others...',
+    waitingHint: 'Tap below to invite someone',
+    shareInvite: '📤 Share Invite Link',
+    linkCopied: '✅ Link Copied!',
+    clearAll: 'Clear All',
+    resume: '▶ Resume',
+    mic: 'Mic',
+    unmute: 'Unmute',
+    noMic: 'No Mic',
+    flip: 'Flip',
+    freeze: 'Freeze',
+    resumeBtn: 'Resume',
+    share: 'Share',
+    end: 'End',
+    you: 'You',
+    peer: 'Peer',
+    ready: 'Ready',
+    preparing: 'Preparing...',
+    joiningRoom: 'Joining room...',
+    disconnected: 'Disconnected',
+    requestingCam: 'Requesting camera/mic…',
+    watchMode: 'Camera/mic unavailable. Joining in watch mode.',
+    noFlipCam: 'No camera available to flip.',
+    flipFailed: 'Could not flip camera on this device/browser.',
+    noVideoFreeze: 'No video to freeze yet',
+    frozenShared: 'Frozen — shared board',
+    frozenDraw: 'Frozen — draw to annotate',
+    live: 'Live',
+    allLeft: 'All peers left',
+    networkIssue: 'Network issue. Retrying...',
+    newPeer: 'New peer joining...',
+    badCode: 'Room code must be 4–8 letters/numbers',
+    autoJoinFail: 'Unable to auto-join room.',
+    peersConnected: (n) => `${n} peer(s) connected`,
+    peerLeft: (n) => `Peer left. ${n} remaining.`,
+    waitingPeers: (room) => `Room ${room} — Waiting for others...`,
+  },
+  zh: {
+    tagline: '一起看，更好地指导',
+    startCall: '开始通话',
+    or: '或',
+    roomPlaceholder: '房间号',
+    join: '加入',
+    serverToggleOpen: '▾ 服务器设置',
+    serverToggleClosed: '▸ 服务器',
+    serverHint: '留空则使用当前页面的服务器。',
+    connecting: '连接中...',
+    waitingOthers: '等待其他人加入...',
+    waitingHint: '点击下方按钮邀请他人',
+    shareInvite: '📤 分享邀请链接',
+    linkCopied: '✅ 链接已复制！',
+    clearAll: '清除标注',
+    resume: '▶ 恢复',
+    mic: '麦克风',
+    unmute: '取消静音',
+    noMic: '无麦克风',
+    flip: '翻转',
+    freeze: '冻结',
+    resumeBtn: '恢复',
+    share: '分享',
+    end: '挂断',
+    you: '我',
+    peer: '参与者',
+    ready: '就绪',
+    preparing: '准备中...',
+    joiningRoom: '正在加入房间...',
+    disconnected: '已断开',
+    requestingCam: '正在请求摄像头/麦克风…',
+    watchMode: '摄像头/麦克风不可用，以观看模式加入。',
+    noFlipCam: '没有可翻转的摄像头。',
+    flipFailed: '此设备/浏览器无法翻转摄像头。',
+    noVideoFreeze: '还没有视频可冻结',
+    frozenShared: '已冻结 — 共享画板',
+    frozenDraw: '已冻结 — 在画面上标注',
+    live: '通话中',
+    allLeft: '所有人已离开',
+    networkIssue: '网络问题，重试中...',
+    newPeer: '新成员加入中...',
+    badCode: '房间号须为4-8位字母或数字',
+    autoJoinFail: '无法自动加入房间。',
+    peersConnected: (n) => `${n} 人已连接`,
+    peerLeft: (n) => `有人离开，剩余 ${n} 人。`,
+    waitingPeers: (room) => `房间 ${room} — 等待其他人...`,
+  }
+};
+
+let currentLang = localStorage.getItem(LANG_KEY) || (navigator.language.startsWith('zh') ? 'zh' : 'en');
+
+function t(key, ...args) {
+  const val = I18N[currentLang]?.[key] || I18N.en[key] || key;
+  return typeof val === 'function' ? val(...args) : val;
+}
+
+function applyLang() {
+  localStorage.setItem(LANG_KEY, currentLang);
+  // Static elements with data-i18n
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (el.tagName === 'INPUT') el.placeholder = t(key);
+    else el.textContent = t(key);
+  });
+  // Language toggle button
+  const langBtn = document.getElementById('langBtn');
+  if (langBtn) langBtn.textContent = currentLang === 'en' ? '中文' : 'EN';
+  // Toolbar labels (only update if not dynamically changed)
+  syncToolbarLabels();
+}
+
+function toggleLang() {
+  currentLang = currentLang === 'en' ? 'zh' : 'en';
+  applyLang();
+}
+
+function syncToolbarLabels() {
+  // Freeze button
+  const fti = freezeBtn?.querySelector('.ti');
+  const ftl = freezeBtn?.querySelector('.tl');
+  if (fti && ftl) {
+    if (fti.textContent === '▶️') ftl.textContent = t('resumeBtn');
+    else ftl.textContent = t('freeze');
+  }
+  // Mic button
+  const mti = muteBtn?.querySelector('.tl');
+  if (mti) {
+    if (mti.textContent === 'Mic' || mti.textContent === '麦克风') mti.textContent = t('mic');
+    if (mti.textContent === 'Unmute' || mti.textContent === '取消静音') mti.textContent = t('unmute');
+    if (mti.textContent === 'No Mic' || mti.textContent === '无麦克风') mti.textContent = t('noMic');
+  }
+  // Other toolbar
+  flipBtn?.querySelector('.tl') && (flipBtn.querySelector('.tl').textContent = t('flip'));
+  shareBtn2?.querySelector('.tl') && (shareBtn2.querySelector('.tl').textContent = t('share'));
+  endBtn?.querySelector('.tl') && (endBtn.querySelector('.tl').textContent = t('end'));
+  // Annotation
+  clearAnnBtn && (clearAnnBtn.textContent = t('clearAll'));
+  unfreezeBtn && (unfreezeBtn.innerHTML = t('resume'));
+  // PIP label
+  const pipLabel = document.querySelector('.pip-label');
+  if (pipLabel) pipLabel.textContent = t('you');
+}
 
 // ═════════════════════════════════
 // ELEMENTS
@@ -698,7 +864,7 @@ function hydrateServerBase() {
   if (base) {
     serverUrlInput.value = base;
     serverPanel.classList.remove('hidden');
-    serverToggle.textContent = '▾ Server Settings';
+    serverToggle.textContent = t('serverToggleOpen');
   }
 }
 
@@ -826,7 +992,7 @@ function syncLocalButtonStates() {
 
   muteBtn.classList.toggle('active-state', !!audioTrack && isMuted);
   muteBtn.querySelector('.ti').textContent = audioTrack ? (isMuted ? '🔇' : '🎤') : '🚫';
-  muteBtn.querySelector('.tl').textContent = audioTrack ? (isMuted ? 'Unmute' : 'Mic') : 'No Mic';
+  muteBtn.querySelector('.tl').textContent = audioTrack ? (isMuted ? t('unmute') : t('mic')) : t('noMic');
 
   const showPip = !!videoTrack && !isFrozen;
   pipContainer.classList.toggle('hidden', !showPip);
@@ -855,7 +1021,7 @@ function rebuildVideoGrid() {
 
     const tag = document.createElement('div');
     tag.className = 'name-tag';
-    tag.textContent = p.label || `Peer ${pid.slice(0,4)}`;
+    tag.textContent = p.label || `${t('peer')} ${pid.slice(0,4)}`;
     cell.appendChild(tag);
 
     videoGrid.appendChild(cell);
@@ -872,7 +1038,7 @@ function createPeerConnection(peerId) {
   if (peers[peerId]?.pc) return peers[peerId].pc;
 
   if (!peers[peerId]) {
-    peers[peerId] = { pc: null, remoteStream: null, videoEl: null, label: `Peer ${peerId.slice(0,4)}` };
+    peers[peerId] = { pc: null, remoteStream: null, videoEl: null, label: `${t('peer')} ${peerId.slice(0,4)}` };
   }
 
   const pc = new RTCPeerConnection(buildRtcConfig());
@@ -889,7 +1055,7 @@ function createPeerConnection(peerId) {
     const stream = ev.streams?.[0] || new MediaStream([ev.track]);
     peers[peerId].remoteStream = stream;
     rebuildVideoGrid();
-    if (!isFrozen) setStatus(`${Object.keys(peers).length} peer(s) connected`, true);
+    if (!isFrozen) setStatus(t('peersConnected', Object.keys(peers).length), true);
   };
 
   // ICE candidates
@@ -904,7 +1070,7 @@ function createPeerConnection(peerId) {
     const s = pc.connectionState;
     console.log(`[RTC:${peerId.slice(0,4)}] state: ${s}`);
     if (s === 'connected') {
-      if (!isFrozen) setStatus(`${Object.keys(peers).length} peer(s) connected`, true);
+      if (!isFrozen) setStatus(t('peersConnected', Object.keys(peers).length), true);
     } else if (s === 'failed') {
       try { pc.restartIce?.(); } catch (_) {}
     } else if (s === 'closed') {
@@ -914,11 +1080,11 @@ function createPeerConnection(peerId) {
 
   pc.oniceconnectionstatechange = () => {
     const state = pc.iceConnectionState;
-    if (state === 'checking') setStatus('Connecting...', false);
+    if (state === 'checking') setStatus(t('connecting'), false);
     else if (state === 'connected' || state === 'completed') {
-      if (!isFrozen) setStatus(`${Object.keys(peers).length} peer(s) connected`, true);
+      if (!isFrozen) setStatus(t('peersConnected', Object.keys(peers).length), true);
     } else if (state === 'failed') {
-      setStatus('Network issue. Retrying...', false);
+      setStatus(t('networkIssue'), false);
     }
   };
 
@@ -942,7 +1108,7 @@ function removePeer(peerId) {
   updatePeerCount();
   if (Object.keys(peers).length === 0) {
     waitingView.classList.remove('hidden');
-    setStatus('All peers left', false);
+    setStatus(t('allLeft'), false);
   }
 }
 
@@ -1017,7 +1183,7 @@ function cleanupLocalStream() {
 
 async function setupMedia() {
   cleanupLocalStream();
-  setStatus('Requesting camera/mic…', false);
+  setStatus(t('requestingCam'), false);
 
   const attempts = [
     {
@@ -1048,7 +1214,7 @@ async function setupMedia() {
   localVideoSrc.srcObject = null;
   pipVideo.srcObject = null;
   syncLocalButtonStates();
-  setStatus('Camera/mic unavailable. Joining in watch mode.', false);
+  setStatus(t('watchMode'), false);
   return false;
 }
 
@@ -1091,7 +1257,7 @@ async function replaceVideoTrack(newTrack) {
 async function flipCamera() {
   const currentVideoTrack = localStream?.getVideoTracks?.()[0];
   if (!currentVideoTrack) {
-    setStatus('No camera available to flip.', false);
+    setStatus(t('noFlipCam'), false);
     return;
   }
 
@@ -1114,7 +1280,7 @@ async function flipCamera() {
     flipBtn.classList.toggle('active-state', currentFacingMode === 'environment');
   } catch (error) {
     console.warn('Flip camera failed', error);
-    setStatus('Could not flip camera on this device/browser.', false);
+    setStatus(t('flipFailed'), false);
   }
 }
 
@@ -1216,7 +1382,7 @@ function freezeFrame() {
   } else if (localVideoSrc.readyState >= 2 && localVideoSrc.videoWidth > 0) {
     sourceVideo = localVideoSrc;
   }
-  if (!sourceVideo) { setStatus('No video to freeze yet'); return; }
+  if (!sourceVideo) { setStatus(t('noVideoFreeze')); return; }
 
   const url = captureVideoFrame(sourceVideo);
   loadFrozenImage(url, url, { remote: false });
@@ -1231,8 +1397,8 @@ function enterFreezeMode({ remote = false } = {}) {
   pipContainer.classList.add('hidden');
   freezeBtn.classList.add('frozen');
   freezeBtn.querySelector('.ti').textContent = '▶️';
-  freezeBtn.querySelector('.tl').textContent = 'Resume';
-  setStatus(remote ? 'Frozen — shared board' : 'Frozen — draw to annotate');
+  freezeBtn.querySelector('.tl').textContent = t('resumeBtn');
+  setStatus(remote ? t('frozenShared') : t('frozenDraw'));
 }
 
 function exitFreezeMode({ notify = true, silent = false } = {}) {
@@ -1247,10 +1413,10 @@ function exitFreezeMode({ notify = true, silent = false } = {}) {
   }
   freezeBtn.classList.remove('frozen');
   freezeBtn.querySelector('.ti').textContent = '⏸';
-  freezeBtn.querySelector('.tl').textContent = 'Freeze';
+  freezeBtn.querySelector('.tl').textContent = t('freeze');
   if (!silent) {
     const connected = Object.keys(peers).length > 0;
-    setStatus(connected ? 'Live' : `Room ${currentRoom || ''} — Waiting for peers...`, connected);
+    setStatus(connected ? t('live') : t('waitingPeers', currentRoom || ''), connected);
   }
   if (notify) sendWs({ type: 'resume_live' });
 }
@@ -1329,7 +1495,7 @@ function connectWs(room) {
 
     socket.onopen = () => {
       ws = socket;
-      setStatus('Joining room...', false);
+      setStatus(t('joiningRoom'), false);
       socket.send(JSON.stringify({ type: 'join', room: normalizedRoom }));
     };
 
@@ -1342,7 +1508,7 @@ function connectWs(room) {
       if (!settled) {
         fail('Could not join room');
       } else if (currentRoom) {
-        setStatus('Disconnected', false);
+        setStatus(t('disconnected'), false);
       }
     };
 
@@ -1352,7 +1518,7 @@ function connectWs(room) {
 
       if (msg.type === 'joined') {
         myPeerId = msg.peer_id;
-        setStatus(`Room ${normalizedRoom} — Waiting for others...`, false);
+        setStatus(t('waitingPeers', normalizedRoom), false);
         updatePeerCount();
         if (!settled) { settled = true; resolve(); }
         return;
@@ -1374,14 +1540,14 @@ function connectWs(room) {
         // New peer arrived — I should create an offer to them
         const newPeerId = msg.peer_id;
         console.log(`[Signal] peer_joined: ${newPeerId.slice(0,4)}`);
-        setStatus('New peer joining...');
+        setStatus(t('newPeer'));
         await makeOfferTo(newPeerId);
         return;
       }
 
       if (msg.type === 'peer_left') {
         removePeer(msg.peer_id);
-        setStatus(`Peer left. ${Object.keys(peers).length} remaining.`);
+        setStatus(t('peerLeft', Object.keys(peers).length));
         return;
       }
 
@@ -1449,7 +1615,7 @@ function cleanup() {
   videoGrid.innerHTML = '';
   videoGrid.setAttribute('data-count', '0');
   pipVideo.srcObject = null;
-  setStatus('Ready', false);
+  setStatus(t('ready'), false);
   releaseWakeLock();
 }
 
@@ -1459,7 +1625,7 @@ function cleanup() {
 function showCallScreen() {
   homeScreen.style.display = 'none';
   callScreen.classList.add('active');
-  setStatus('Preparing...', false);
+  setStatus(t('preparing'), false);
 }
 
 function showHomeScreen() {
@@ -1472,7 +1638,7 @@ async function startRoom(roomCode) {
   const room = sanitizeRoomCode(roomCode);
   homeRoomInput.value = room;
   if (!ROOM_CODE_RE.test(room)) {
-    setStatus('Room code must be 4–8 letters/numbers', false);
+    setStatus(t('badCode'), false);
     homeRoomInput.focus();
     return;
   }
@@ -1492,7 +1658,7 @@ async function startRoom(roomCode) {
   } catch (error) {
     console.warn('Join failed', error);
     if (isAutoJoin) {
-      setStatus('Unable to auto-join room.', false);
+      setStatus(t('autoJoinFail'), false);
     }
     setTimeout(() => { showHomeScreen(); }, 500);
   }
@@ -1527,7 +1693,7 @@ homeRoomInput.addEventListener('keydown', async (event) => {
 
 serverToggle.addEventListener('click', () => {
   serverPanel.classList.toggle('hidden');
-  serverToggle.textContent = serverPanel.classList.contains('hidden') ? '▸ Server Settings' : '▾ Server Settings';
+  serverToggle.textContent = serverPanel.classList.contains('hidden') ? t('serverToggleClosed') : t('serverToggleOpen');
 });
 
 serverUrlInput.addEventListener('change', persistServerBase);
@@ -1545,8 +1711,8 @@ async function autoShare() {
   // Fallback: copy to clipboard
   try {
     await navigator.clipboard.writeText(link);
-    copyLinkBtn2.textContent = '✅ Link Copied!';
-    setTimeout(() => { copyLinkBtn2.textContent = '📤 Share Invite Link'; }, 3000);
+    copyLinkBtn2.textContent = t('linkCopied');
+    setTimeout(() => { copyLinkBtn2.textContent = t('shareInvite'); }, 3000);
   } catch (_) {
     prompt('Copy this link:', link);
   }
@@ -1603,6 +1769,7 @@ if ('serviceWorker' in navigator) {
 
 // Auto-join from URL
 (async function init() {
+  applyLang();
   hydrateServerBase();
   syncLocalButtonStates();
   const params = new URLSearchParams(location.search);
