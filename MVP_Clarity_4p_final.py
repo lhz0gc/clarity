@@ -83,7 +83,7 @@ MANIFEST_JSON = json.dumps(
 )
 
 SERVICE_WORKER_JS = r'''
-const CACHE_NAME = 'clarity-shell-v23';
+const CACHE_NAME = 'clarity-shell-v24';
 const APP_SHELL = ['/manifest.json', '/icon.svg'];
 
 self.addEventListener('install', (event) => {
@@ -1045,7 +1045,9 @@ function getSignalingBase() {
 function resolveWsUrl() {
   const url = new URL(getSignalingBase());
   url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
-  url.pathname = '/ws';
+  // If behind reverse proxy (e.g. /clarity), keep the prefix so the proxy routes it
+  const prefix = location.pathname.replace(/\/+$/, '').match(/^(\/[^/]+)/);
+  url.pathname = (prefix && location.origin === url.origin ? prefix[1] : '') + '/ws';
   url.search = '';
   url.hash = '';
   return url.toString();
