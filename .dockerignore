@@ -1,0 +1,9 @@
+__pycache__
+*.pyc
+.git
+ClarityApp
+MVP_Clarity_4p.py
+MVP_Clarity_mobile.py
+*.md
+clarity_poster.*
+render.yaml
