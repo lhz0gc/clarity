@@ -84,7 +84,7 @@ MANIFEST_JSON = json.dumps(
 )
 
 SERVICE_WORKER_JS = r'''
-const CACHE_NAME = 'clarity-shell-v29';
+const CACHE_NAME = 'clarity-shell-v30';
 const APP_SHELL = ['/manifest.json', '/icon.svg'];
 
 self.addEventListener('install', (event) => {
@@ -706,7 +706,7 @@ INDEX_HTML = r'''
 <div id="homeScreen">
   <div class="logo-row">
     <svg viewBox="0 0 720 220" style="width:220px;height:auto;" xmlns="http://www.w3.org/2000/svg">
-      <text x="0" y="170" fill="var(--primary)" font-family="-apple-system,BlinkMacSystemFont,'SF Pro','Segoe UI',Roboto,sans-serif" font-weight="800" font-size="200" letter-spacing="-6">Clarity</text>
+      <text x="0" y="170" fill="#0E1116" font-family="-apple-system,BlinkMacSystemFont,'SF Pro','Segoe UI',Roboto,sans-serif" font-weight="800" font-size="200" letter-spacing="-6">Clarity</text>
       <path d="M690 18 L548 78 L598 96 L578 130 Z" fill="#25D366"/>
     </svg>
   </div>
