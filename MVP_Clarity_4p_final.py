@@ -84,7 +84,7 @@ MANIFEST_JSON = json.dumps(
 )
 
 SERVICE_WORKER_JS = r'''
-const CACHE_NAME = 'clarity-shell-v30';
+const CACHE_NAME = 'clarity-shell-v31';
 const APP_SHELL = ['/manifest.json', '/icon.svg'];
 
 self.addEventListener('install', (event) => {
@@ -321,9 +321,9 @@ INDEX_HTML = r'''
 
     .join-section { width: 88%; max-width: 380px; }
     .join-label { display: none; }
-    .join-row { display: flex; gap: 10px; }
+    .join-row { display: flex; gap: 10px; width: 100%; }
     .join-input {
-      flex: 1; height: calc(56px * var(--scale)); background: var(--off-white);
+      flex: 1; min-width: 0; height: calc(56px * var(--scale)); background: var(--off-white);
       border: 1.5px solid var(--gray-light); border-radius: var(--r-lg);
       text-align: center; font-size: var(--fs-5); font-weight: 700;
       letter-spacing: 4px; color: var(--charcoal); outline: none;
@@ -336,7 +336,7 @@ INDEX_HTML = r'''
       height: calc(56px * var(--scale)); min-width: calc(80px * var(--scale)); padding: 0 24px;
       background: var(--accent); color: white; border: none; border-radius: var(--r-lg);
       font-size: var(--fs-3); font-weight: 600; cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
+      -webkit-tap-highlight-color: transparent; flex-shrink: 0;
     }
     .join-btn:active { opacity: 0.85; background: var(--accent-hover); }
 
