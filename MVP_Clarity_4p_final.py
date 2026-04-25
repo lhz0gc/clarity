@@ -84,7 +84,7 @@ MANIFEST_JSON = json.dumps(
 )
 
 SERVICE_WORKER_JS = r'''
-const CACHE_NAME = 'clarity-shell-v27';
+const CACHE_NAME = 'clarity-shell-v28';
 const APP_SHELL = ['/manifest.json', '/icon.svg'];
 
 self.addEventListener('install', (event) => {
@@ -141,6 +141,8 @@ INDEX_HTML = r'''
   <meta name="theme-color" content="#075E54" />
   <title>Clarity</title>
   <link rel="manifest" href="/manifest.json" />
+  <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="/icon.svg" />
   <style>
     :root {
       /* ── Brand ── */
@@ -516,34 +518,60 @@ INDEX_HTML = r'''
       font-size: var(--fs-1); color: white; font-weight: 600;
     }
 
-    /* Annotation bar — WhatsApp-style */
+    /* Annotation bar — glass pill redesign */
     .annotation-bar {
-      display: none; flex-direction: column; gap: 6px;
-      padding: 10px 12px; background: var(--overlay-bar); z-index: 15;
-      overflow-x: auto; backdrop-filter: blur(var(--blur-bar)); -webkit-backdrop-filter: blur(var(--blur-bar));
+      display: none; position: absolute; bottom: 0; left: 0; right: 0;
+      flex-direction: column; gap: 10px;
+      padding: 10px 12px calc(10px + var(--safe-bottom));
+      z-index: 15;
     }
     .annotation-bar.active { display: flex; }
-    .ann-row { display: flex; align-items: center; gap: 8px; justify-content: center; flex-wrap: wrap; }
+    .ann-pill {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px;
+      background: rgba(18,22,28,0.55);
+      backdrop-filter: blur(18px) saturate(1.3);
+      -webkit-backdrop-filter: blur(18px) saturate(1.3);
+      border-radius: 999px;
+      box-shadow: 0 10px 28px rgba(0,0,0,0.45), inset 0 0 0 1px rgba(255,255,255,0.12);
+    }
     .color-dot {
-      width: calc(40px * var(--scale)); height: calc(40px * var(--scale)); border-radius: 50%;
-      border: 3px solid transparent; cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
-      transition: transform 0.15s; flex-shrink: 0;
+      width: 44px; height: 44px; border-radius: 50%;
+      border: 0; cursor: pointer; box-shadow: inset 0 0 0 3px rgba(0,0,0,0.15);
+      -webkit-tap-highlight-color: transparent; transition: transform 0.12s; flex-shrink: 0;
     }
-    .color-dot.selected { border-color: white; transform: scale(1.15); }
-    .ann-divider { width: 1px; height: 30px; background: rgba(255,255,255,0.15); margin: 0 4px; flex-shrink: 0; }
-    .ann-action {
-      padding: calc(10px * var(--scale)) calc(18px * var(--scale)); background: rgba(255,255,255,0.1); border: none;
-      border-radius: 20px; color: white; font-size: calc(16px * var(--scale)); font-weight: 600;
-      cursor: pointer; -webkit-tap-highlight-color: transparent; flex-shrink: 0;
+    .color-dot.selected {
+      box-shadow: inset 0 0 0 3px rgba(0,0,0,0.15), 0 0 0 3px #fff, 0 0 0 5px rgba(255,255,255,0.15);
+      transform: scale(1.05);
     }
-    .ann-action:active { opacity: 0.7; }
-    .ann-action.save { background: rgba(0,122,255,0.8); }
-    .ann-action.done { background: var(--accent); }
-    .ann-action.undo-redo { padding: 8px 14px; font-size: calc(22px * var(--scale)); min-width: 44px; text-align: center; }
-    .ann-action.undo-redo:disabled { opacity: 0.3; }
-    .ann-action.zoom-btn { padding: 8px 14px; font-size: calc(24px * var(--scale)); font-weight: 900; min-width: 44px; text-align: center; }
-    .zoom-label { color: rgba(255,255,255,0.7); font-size: 14px; font-weight: 600; min-width: 28px; text-align: center; }
+    .ann-divider { width: 1px; height: 28px; background: rgba(255,255,255,0.18); margin: 0 2px; flex-shrink: 0; }
+    .ann-util {
+      width: 44px; height: 44px; border-radius: 50%;
+      background: rgba(255,255,255,0.1); border: 0; cursor: pointer; color: #fff; padding: 0;
+      display: flex; align-items: center; justify-content: center; transition: background 0.12s;
+    }
+    .ann-util:disabled { opacity: 0.35; cursor: default; }
+    .ann-util svg { width: 22px; height: 22px; fill: currentColor; display: block; }
+    .ann-resume {
+      margin-left: auto; display: flex; align-items: center; gap: 6px;
+      height: 44px; padding: 0 18px 0 14px; border-radius: 999px;
+      background: var(--accent); color: #073B1F; border: 0; cursor: pointer;
+      font-size: 15px; font-weight: 700; letter-spacing: 0.2px;
+      box-shadow: 0 2px 10px rgba(37,211,102,0.35);
+    }
+    .ann-resume svg { width: 18px; height: 18px; fill: currentColor; }
+    .ann-secondary {
+      display: flex; gap: 8px; padding: 0 4px; align-items: center;
+      font-size: 13px; color: rgba(255,255,255,0.7);
+    }
+    .ann-txtbtn {
+      background: transparent; border: 0; color: rgba(255,255,255,0.85);
+      font-size: 13.5px; font-weight: 600; cursor: pointer; padding: 6px 10px; border-radius: 8px;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .ann-txtbtn:hover { background: rgba(255,255,255,0.08); }
+    .ann-txtbtn svg { width: 16px; height: 16px; fill: currentColor; }
+    .ann-txtbtn.danger { color: #FF9BA3; }
 
     /* Main toolbar — WhatsApp pill bar + elderly-friendly labels */
     .call-toolbar {
@@ -556,49 +584,49 @@ INDEX_HTML = r'''
       position: relative;
       display: flex; align-items: center; justify-content: center;
       gap: calc(6px * var(--scale)); padding: calc(8px * var(--scale)) calc(10px * var(--scale));
-      background: var(--overlay-chrome);
+      background: rgba(18,22,28,0.55);
       border-radius: var(--r-3xl);
-      backdrop-filter: blur(var(--blur-chrome)); -webkit-backdrop-filter: blur(var(--blur-chrome));
-      box-shadow: var(--shadow-toolbar);
+      backdrop-filter: blur(18px) saturate(1.3); -webkit-backdrop-filter: blur(18px) saturate(1.3);
+      box-shadow: var(--shadow-toolbar), inset 0 0 0 1px rgba(255,255,255,0.12);
     }
     .tool-btn {
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      display: flex; align-items: center; justify-content: center;
       width: calc(var(--tap-comfy) * var(--scale)); height: calc(var(--tap-comfy) * var(--scale)); border-radius: 50%;
       background: var(--overlay-soft); border: none;
       cursor: pointer; -webkit-tap-highlight-color: transparent; color: white;
-      padding: 0; flex-shrink: 0; gap: 2px;
+      padding: 0; flex-shrink: 0;
     }
     .tool-btn:active { background: var(--overlay-soft-hi); }
     .tool-btn.active-state { background: white; color: var(--charcoal); }
-    .tool-btn svg { width: 22px; height: 22px; fill: currentColor; flex-shrink: 0; }
-    .tool-btn .tl { font-size: var(--fs-1); font-weight: 600; color: rgba(255,255,255,0.9); line-height: 1; }
-    .tool-btn.active-state .tl { color: var(--charcoal); }
+    .tool-btn svg { width: 28px; height: 28px; fill: currentColor; flex-shrink: 0; }
 
     .freeze-btn {
       width: calc(var(--tap-freeze) * var(--scale)); height: calc(var(--tap-freeze) * var(--scale)); border-radius: 50%;
       background: var(--primary); border: 3px solid var(--accent);
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      display: flex; align-items: center; justify-content: center;
       cursor: pointer; box-shadow: var(--shadow-freeze-ring);
       -webkit-tap-highlight-color: transparent; color: white;
-      padding: 0; flex-shrink: 0; gap: 2px;
+      padding: 0; flex-shrink: 0;
       position: relative;
     }
     .freeze-btn:active { transform: scale(0.93); }
     .freeze-btn.frozen { background: var(--accent); border-color: var(--accent); }
-    .freeze-btn svg { width: 24px; height: 24px; fill: currentColor; flex-shrink: 0; }
-    .freeze-btn .tl { font-size: var(--fs-1); font-weight: 700; color: white; line-height: 1; }
+    .freeze-btn svg { width: 34px; height: 34px; fill: currentColor; flex-shrink: 0; }
 
     .freeze-coach {
-      position: absolute; bottom: calc(100% + 12px); left: 50%; transform: translateX(-50%);
-      background: var(--primary); color: white; padding: 10px 16px;
-      border-radius: var(--r-md); font-size: var(--fs-2); white-space: nowrap;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-      animation: coachBounce 2s ease-in-out infinite;
+      position: absolute; bottom: calc(100% + 14px); left: 50%; transform: translateX(-50%);
+      background: rgba(20,24,30,0.55);
+      backdrop-filter: blur(16px) saturate(1.3);
+      -webkit-backdrop-filter: blur(16px) saturate(1.3);
+      color: #fff; padding: 10px 16px;
+      border-radius: var(--r-md); font-size: var(--fs-2); font-weight: 600; white-space: nowrap;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.35), inset 0 0 0 1px rgba(255,255,255,0.16);
+      animation: coachBounce 2.2s ease-in-out infinite;
       z-index: 30;
     }
     .freeze-coach::after {
       content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
-      border: 6px solid transparent; border-top-color: var(--primary);
+      border: 7px solid transparent; border-top-color: rgba(20,24,30,0.55);
     }
     @keyframes coachBounce {
       0%, 100% { transform: translateX(-50%) translateY(0); }
@@ -608,25 +636,40 @@ INDEX_HTML = r'''
     .end-btn {
       width: calc(var(--tap-comfy) * var(--scale)); height: calc(var(--tap-comfy) * var(--scale)); border-radius: 50%;
       background: var(--red-end); border: none;
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      display: flex; align-items: center; justify-content: center;
       cursor: pointer; -webkit-tap-highlight-color: transparent; color: white;
-      padding: 0; flex-shrink: 0; gap: 2px;
+      padding: 0; flex-shrink: 0;
     }
     .end-btn:active { opacity: 0.8; }
     .end-btn svg { width: 22px; height: 22px; fill: currentColor; flex-shrink: 0; }
-    .end-btn .tl { font-size: var(--fs-1); font-weight: 600; color: white; line-height: 1; }
 
     .source-video { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
 
     /* Toast notification */
     .toast {
-      position: fixed; top: 60px; left: 50%; transform: translateX(-50%);
-      background: rgba(0,0,0,0.85); color: white; padding: calc(14px * var(--scale)) calc(24px * var(--scale));
-      border-radius: var(--r-xl); font-size: var(--fs-3); font-weight: 600; z-index: 100;
-      opacity: 0; transition: opacity 0.4s; pointer-events: none;
-      max-width: 90%; text-align: center;
+      position: fixed; bottom: calc(90px + var(--safe-bottom)); left: 50%; transform: translateX(-50%);
+      background: rgba(20,24,30,0.96); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      color: #fff; padding: 13px 16px 13px 14px; border-radius: 14px;
+      display: flex; align-items: center; gap: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.06);
+      overflow: hidden; min-height: 48px; box-sizing: border-box;
+      z-index: 999; opacity: 0; pointer-events: none;
+      transition: opacity 0.3s ease;
+      max-width: 90vw;
     }
-    .toast.show { opacity: 1; }
+    .toast.visible { opacity: 1; pointer-events: auto; }
+    .toast::before {
+      content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+      background: var(--toast-accent, #25D366);
+    }
+    .toast-icon {
+      flex: none; width: 28px; height: 28px; border-radius: 50%;
+      background: rgba(255,255,255,0.08);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--toast-accent, #25D366);
+    }
+    .toast-icon svg { width: 18px; height: 18px; fill: currentColor; display: block; }
+    .toast-msg { font-size: 15px; font-weight: 600; line-height: 1.3; }
 
     @media (max-height: 700px) {
       .quick-call-btn { height: 56px; }
@@ -646,7 +689,6 @@ INDEX_HTML = r'''
     }
     #hangupScreen.active { display: flex; }
     @keyframes hangupFadeIn { from { opacity: 0; } to { opacity: 1; } }
-    .hangup-logo { font-size: var(--fs-9); font-weight: var(--fw-heavy); color: white; letter-spacing: -1px; }
     .hangup-tagline { font-size: var(--fs-3); color: rgba(255,255,255,0.5); margin-bottom: 32px; }
     .hangup-msg { font-size: var(--fs-4); color: var(--accent); font-weight: 600; margin-bottom: 8px; }
     .hangup-sub { font-size: var(--fs-2); color: rgba(255,255,255,0.6); }
@@ -726,23 +768,19 @@ INDEX_HTML = r'''
   </div>
 
   <div class="annotation-bar" id="annotationBar">
-    <div class="ann-row">
+    <div class="ann-pill">
       <div class="color-dot selected" style="background:#FF3B30" data-color="#FF3B30"></div>
-      <div class="color-dot" style="background:#34C759" data-color="#34C759"></div>
       <div class="color-dot" style="background:#FFCC00" data-color="#FFCC00"></div>
-      <div class="color-dot" style="background:#007AFF" data-color="#007AFF"></div>
+      <div class="color-dot" style="background:#34C759" data-color="#34C759"></div>
       <div class="ann-divider"></div>
-      <button class="ann-action undo-redo" id="undoBtn" disabled>↩</button>
-      <button class="ann-action undo-redo" id="redoBtn" disabled>↪</button>
-      <div class="ann-divider"></div>
-      <button class="ann-action zoom-btn" id="zoomOutBtn">−</button>
-      <span class="zoom-label" id="zoomLabel"></span>
-      <button class="ann-action zoom-btn" id="zoomInBtn">+</button>
+      <button class="ann-util" id="undoBtn" disabled aria-label="Undo"><svg viewBox="0 0 24 24"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62A7.97 7.97 0 0 1 12.5 11c3.52 0 6.52 2.29 7.58 5.47l2.37-.78A10.99 10.99 0 0 0 12.5 8z"/></svg></button>
+      <button class="ann-util" id="redoBtn" disabled aria-label="Redo"><svg viewBox="0 0 24 24" style="transform:scaleX(-1)"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62A7.97 7.97 0 0 1 12.5 11c3.52 0 6.52 2.29 7.58 5.47l2.37-.78A10.99 10.99 0 0 0 12.5 8z"/></svg></button>
+      <button class="ann-resume" id="unfreezeBtn"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg> <span data-i18n="resume">Resume</span></button>
     </div>
-    <div class="ann-row">
-      <button class="ann-action" id="clearAnnBtn" data-i18n="clearAll">Clear All</button>
-      <button class="ann-action save" id="saveAnnBtn" data-i18n="saveImg">💾 Save</button>
-      <button class="ann-action done" id="unfreezeBtn" data-i18n="resume">▶ Resume</button>
+    <div class="ann-secondary">
+      <button class="ann-txtbtn" id="saveAnnBtn"><svg viewBox="0 0 24 24"><path d="M17 3H7a2 2 0 0 0-2 2v16l7-3 7 3V5a2 2 0 0 0-2-2zm0 15l-5-2.18L7 18V5h10v13z"/></svg> <span data-i18n="saveImg">Save frame</span></button>
+      <span style="flex:1"></span>
+      <button class="ann-txtbtn danger" id="clearAnnBtn"><svg viewBox="0 0 24 24"><path d="M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg> <span data-i18n="clearAll">Clear all</span></button>
     </div>
   </div>
 
@@ -750,24 +788,19 @@ INDEX_HTML = r'''
     <div class="toolbar-pill">
       <button class="tool-btn" id="muteBtn" aria-label="Mic">
         <svg viewBox="0 0 24 24"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.93V21h2v-3.07A7 7 0 0 0 19 11h-2z"/></svg>
-        <span class="tl" data-i18n="mic">Mic</span>
       </button>
       <button class="tool-btn" id="flipBtn" aria-label="Flip">
         <svg viewBox="0 0 24 24"><path d="M20 5h-3.17L15 3H9L7.17 5H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm-8 13a5.5 5.5 0 0 1 0-11 5.5 5.5 0 0 1 5.21 3.73h-1.71A3.99 3.99 0 0 0 12 8.5a4 4 0 1 0 3.73 5.46h1.71A5.5 5.5 0 0 1 12 18z"/></svg>
-        <span class="tl" data-i18n="flip">Flip</span>
       </button>
       <button class="freeze-btn" id="freezeBtn" aria-label="Freeze">
         <svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-        <span class="tl" data-i18n="freeze">Freeze</span>
         <div class="freeze-coach hidden" id="freezeCoach"><span data-i18n="coachFreeze">Tap to freeze &amp; annotate!</span></div>
       </button>
       <button class="tool-btn" id="shareBtn2" aria-label="Share">
         <svg viewBox="0 0 24 24"><path d="M18 16.08a2.99 2.99 0 0 0-1.98.75L8.91 12.7A3.02 3.02 0 0 0 9 12a3.02 3.02 0 0 0-.09-.7l7.05-4.11A2.99 2.99 0 1 0 15 5a3.02 3.02 0 0 0 .09.7L8.04 9.81A3 3 0 1 0 6 15a2.99 2.99 0 0 0 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66a2.92 2.92 0 1 0 2.92-2.92z"/></svg>
-        <span class="tl" data-i18n="share">Share</span>
       </button>
       <button class="end-btn" id="endBtn" aria-label="End">
         <svg viewBox="0 0 24 24"><path d="M12 9c-1.6 0-3.15.25-4.6.72v3.1c0 .39-.23.74-.56.9-.98.49-1.87 1.12-2.66 1.85-.18.18-.43.28-.7.28a.99.99 0 0 1-.71-.3L.29 13.08a.99.99 0 0 1 0-1.42C3.55 8.5 7.56 7 12 7s8.45 1.5 11.71 4.66a.99.99 0 0 1 0 1.42l-2.48 2.48a.99.99 0 0 1-.7.29c-.27 0-.52-.1-.71-.29a11.27 11.27 0 0 0-2.66-1.85c-.33-.16-.56-.5-.56-.9v-3.1C15.15 9.25 13.6 9 12 9z"/></svg>
-        <span class="tl" data-i18n="end">End</span>
       </button>
     </div>
   </div>
@@ -778,10 +811,10 @@ INDEX_HTML = r'''
 
 <div id="hangupScreen">
   <div class="logo-row" style="margin-bottom:8px;">
-    <span class="hangup-logo">Clarity</span>
-    <div class="hangup-cursor" style="width:22px;height:22px;margin-top:12px;">
-      <svg viewBox="0 0 24 24" width="22" height="22"><path d="M5 2l14 10-7 2-3 7z" fill="#25D366"/></svg>
-    </div>
+    <svg viewBox="0 0 720 220" style="width:220px;height:auto;" xmlns="http://www.w3.org/2000/svg">
+      <text x="0" y="170" fill="white" font-family="-apple-system,BlinkMacSystemFont,'SF Pro','Segoe UI',Roboto,sans-serif" font-weight="800" font-size="200" letter-spacing="-6">Clarity</text>
+      <path d="M690 18 L548 78 L598 96 L578 130 Z" fill="#25D366"/>
+    </svg>
   </div>
   <div class="hangup-tagline" data-i18n="tagline">See Together. Guide Better.</div>
   <div class="hangup-msg" id="hangupMsg" data-i18n="callEnded">Call ended</div>
@@ -980,21 +1013,15 @@ function toggleBigText() {
 }
 
 function syncToolbarLabels() {
-  // Freeze/resume label
-  const ftl = freezeBtn?.querySelector('.tl');
-  if (ftl) ftl.textContent = isFrozen ? t('resumeBtn') : t('freeze');
-  // Mic label
+  // Mic state
   syncLocalButtonStates();
-  // Other toolbar labels
-  const flipLabel = flipBtn?.querySelector('.tl');
-  if (flipLabel) flipLabel.textContent = t('flip');
-  const shareLabel = shareBtn2?.querySelector('.tl');
-  if (shareLabel) shareLabel.textContent = t('share');
-  const endLabel = endBtn?.querySelector('.tl');
-  if (endLabel) endLabel.textContent = t('end');
-  // Annotation
-  clearAnnBtn && (clearAnnBtn.textContent = t('clearAll'));
-  unfreezeBtn && (unfreezeBtn.innerHTML = t('resume'));
+  // Annotation bar labels
+  const clearLabel = clearAnnBtn?.querySelector('[data-i18n="clearAll"]');
+  if (clearLabel) clearLabel.textContent = t('clearAll');
+  const resumeLabel = unfreezeBtn?.querySelector('[data-i18n="resume"]');
+  if (resumeLabel) resumeLabel.textContent = t('resume');
+  const saveLabel = document.getElementById('saveAnnBtn')?.querySelector('[data-i18n="saveImg"]');
+  if (saveLabel) saveLabel.textContent = t('saveImg');
   const pipLabel = document.querySelector('.pip-label');
   if (pipLabel) pipLabel.textContent = t('you');
 }
@@ -1169,14 +1196,23 @@ function generateQR() {
   } catch(e) { console.warn('QR generation failed', e); }
 }
 
-let toastTimer = null;
-function showToast(msg, duration = 4000) {
-  const el = document.getElementById('toast');
-  if (!el) return;
-  el.textContent = msg;
-  el.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.classList.remove('show'), duration);
+function showToast(msg, duration = 3000, type = 'success') {
+  const t = document.getElementById('toast');
+  const colors = { success: '#25D366', warning: '#FF9500', error: '#FF3B30', info: '#60A5FA', tip: '#FFCC00' };
+  const icons = {
+    success: '<svg viewBox="0 0 24 24"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg>',
+    warning: '<svg viewBox="0 0 24 24"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>',
+    error: '<svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>',
+    info: '<svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>',
+    tip: '<svg viewBox="0 0 24 24"><path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19A7 7 0 0 0 8 14.74c0 1.17.5 2.26 1.29 3.03L10 18.5V19h4v-.5l.71-.73A7 7 0 0 0 16 14.74 7 7 0 0 0 12 2z"/></svg>'
+  };
+  const accent = colors[type] || colors.success;
+  const icon = icons[type] || icons.success;
+  t.style.setProperty('--toast-accent', accent);
+  t.innerHTML = '<div class="toast-icon">' + icon + '</div><span class="toast-msg">' + msg + '</span>';
+  t.classList.add('visible');
+  clearTimeout(t._tid);
+  t._tid = setTimeout(() => t.classList.remove('visible'), duration);
 }
 
 function setStatus(text, connected) {
@@ -1338,8 +1374,7 @@ function syncLocalButtonStates() {
   isVideoOff = videoTrack ? !videoTrack.enabled : true;
 
   muteBtn.classList.toggle('active-state', !!audioTrack && isMuted);
-  const micLabel = audioTrack ? (isMuted ? t('unmute') : t('mic')) : t('noMic');
-  muteBtn.innerHTML = (audioTrack ? (isMuted ? ICONS.micOff : ICONS.micOn) : ICONS.micNone) + `<span class="tl">${micLabel}</span>`;
+  muteBtn.innerHTML = audioTrack ? (isMuted ? ICONS.micOff : ICONS.micOn) : ICONS.micNone;
 
   const showPip = !!videoTrack && !isFrozen;
   pipContainer.classList.toggle('hidden', !showPip);
@@ -2397,11 +2432,6 @@ clearAnnBtn.addEventListener('click', clearAnnotations);
 document.getElementById('saveAnnBtn').addEventListener('click', saveAnnotatedImage);
 document.getElementById('undoBtn').addEventListener('click', undoAnnotation);
 document.getElementById('redoBtn').addEventListener('click', redoAnnotation);
-document.getElementById('zoomInBtn').addEventListener('click', () => adjustZoom(0.5));
-document.getElementById('zoomOutBtn').addEventListener('click', () => {
-  if (zoomLevel <= 1) return;
-  adjustZoom(-0.5);
-});
 unfreezeBtn.addEventListener('click', () => {
   clearBoard();
   exitFreezeMode({ notify: true });
